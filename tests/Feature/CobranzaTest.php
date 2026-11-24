@@ -170,11 +170,11 @@ class CobranzaTest extends TestCase
     public function test_importacion_previsualiza_crea_actualiza_y_errores(): void
     {
         $filas = collect([
-            ['matricula' => 'CUOP27001', 'nombre_completo' => 'nuevo alumno uno', 'sede' => 'cuop-lor', 'carrera' => 'EDUCACIÓN NO ESCOLARIZADO', 'grupo' => '27-1 A', 'plan_pago' => '1', 'estatus' => 'ACTIVO'],
+            ['matricula' => 'CUOP27001', 'nombre_completo' => 'nuevo alumno uno', 'sede' => 'cuop-lor', 'carrera' => 'LICENCIATURA EN EDUCACIÓN', 'grupo' => '27-1 A', 'plan_pago' => '1', 'estatus' => 'ACTIVO'],
             ['matricula' => 'CUOP26001', 'nombre_completo' => '', 'sede' => '', 'carrera' => '', 'grupo' => '27-2 LIC-EDUN-NESC-SAB-7A', 'plan_pago' => '', 'estatus' => 'EGRESADO'],
             ['matricula' => 'CUOP26003', 'nombre_completo' => '', 'sede' => '', 'carrera' => '', 'grupo' => '27-1 LIC-DER-ESC-MAT-3B', 'plan_pago' => '', 'estatus' => 'ACTIVO'],
-            ['matricula' => 'CUOP27002', 'nombre_completo' => 'X', 'sede' => 'NO-EXISTE', 'carrera' => 'EDUCACIÓN NO ESCOLARIZADO', 'grupo' => 'G', 'plan_pago' => '1', 'estatus' => 'ACTIVO'],
-            ['matricula' => 'CUOP27001', 'nombre_completo' => 'DUP', 'sede' => 'CUOP-LOR', 'carrera' => 'EDUCACIÓN NO ESCOLARIZADO', 'grupo' => 'G', 'plan_pago' => '1', 'estatus' => 'ACTIVO'],
+            ['matricula' => 'CUOP27002', 'nombre_completo' => 'X', 'sede' => 'NO-EXISTE', 'carrera' => 'LICENCIATURA EN EDUCACIÓN', 'grupo' => 'G', 'plan_pago' => '1', 'estatus' => 'ACTIVO'],
+            ['matricula' => 'CUOP27001', 'nombre_completo' => 'DUP', 'sede' => 'CUOP-LOR', 'carrera' => 'LICENCIATURA EN EDUCACIÓN', 'grupo' => 'G', 'plan_pago' => '1', 'estatus' => 'ACTIVO'],
         ])->map(fn ($r) => collect($r));
 
         $service = app(ImportarAlumnosService::class);
@@ -189,6 +189,25 @@ class CobranzaTest extends TestCase
         $this->assertSame('NUEVO ALUMNO UNO', Alumno::find('CUOP27001')->nombre_completo);
         $this->assertSame('EGRESADO', Alumno::find('CUOP26001')->estatus->value);
         $this->assertSame('27-2 LIC-EDUN-NESC-SAB-7A', Alumno::find('CUOP26001')->grupo);
+    }
+
+    public function test_importacion_lee_solo_la_primera_hoja_del_libro(): void
+    {
+        $ruta = tempnam(sys_get_temp_dir(), 'padron').'.xlsx';
+        $libro = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $libro->getActiveSheet()->fromArray([
+            ['MATRICULA', 'NOMBRE_COMPLETO', 'SEDE', 'CARRERA', 'GRUPO', 'PLAN_PAGO', 'ESTATUS'],
+            ['CUOP-LOR09001', 'ALUMNO HOJA UNO', 'CUOP-LOR', 'LICENCIATURA EN EDUCACIÓN', '27-1 LIC-EDUN-NESC-SAB-1A', 'PLAN 1370', 'ACTIVO'],
+        ]);
+        $libro->createSheet()->fromArray([['MATRICULA', 'NOTAS'], ['CUOP-LOR09001', 'hoja de revisión']]);
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($libro))->save($ruta);
+
+        $a = app(ImportarAlumnosService::class)->analizar($ruta);
+        @unlink($ruta);
+
+        $this->assertSame(1, $a['total']);
+        $this->assertCount(1, $a['crear']);
+        $this->assertSame('ALUMNO HOJA UNO', $a['crear'][0]['nombre_completo']);
     }
 
     public function test_paginas_y_permisos_por_rol(): void

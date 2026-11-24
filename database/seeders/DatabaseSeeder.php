@@ -32,12 +32,8 @@ class DatabaseSeeder extends Seeder
         $lor = Sede::where('clave', 'CUOP-LOR')->firstOrFail();
         $ags = Sede::where('clave', 'CUOP-AGS')->firstOrFail();
 
-        $eduNesc = Carrera::updateOrCreate(
-            ['nombre' => 'EDUCACIÓN NO ESCOLARIZADO', 'modalidad' => 'NO ESCOLARIZADO'],
-        );
-        $derEsc = Carrera::updateOrCreate(
-            ['nombre' => 'LICENCIATURA EN DERECHO', 'modalidad' => 'ESCOLARIZADO'],
-        );
+        $eduNesc = Carrera::where('nombre', 'LICENCIATURA EN EDUCACIÓN')->firstOrFail();
+        $derEsc = Carrera::where('nombre', 'LICENCIATURA EN DERECHO')->firstOrFail();
 
         // Cada sede tiene sus propios planes (datos de ejemplo; los reales se capturan en Catálogos).
         $planSabatino = PlanPago::updateOrCreate(['nombre' => 'SABATINO 2026', 'sede_id' => $lor->id, 'carrera_id' => null], [

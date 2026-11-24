@@ -51,7 +51,7 @@ class PlanesPorSedeTest extends TestCase
 
     public function test_no_se_mueve_un_plan_de_sede_si_deja_alumnos_fuera(): void
     {
-        $plan = PlanPago::where('sede_id', $this->lor->id)->first(); // tiene 3 alumnos de Loreto
+        $plan = PlanPago::where('sede_id', $this->lor->id)->where('nombre', 'SABATINO 2026')->first(); // 3 alumnos de Loreto
 
         Livewire::test(Catalogos::class, ['tab' => 'planes'])->set('tab', 'planes')
             ->call('editar', $plan->id)->set('form.sede_id', $this->cal->id)
@@ -62,7 +62,8 @@ class PlanesPorSedeTest extends TestCase
 
     public function test_formulario_de_alumno_solo_ofrece_y_acepta_planes_de_su_sede(): void
     {
-        $planLor = PlanPago::where('sede_id', $this->lor->id)->first();
+        $planLor = PlanPago::where('sede_id', $this->lor->id)->where('nombre', 'SABATINO 2026')->first();
+        $planCal = PlanPago::create(['nombre' => 'UNICO CALVILLO', 'sede_id' => $this->cal->id, 'monto_mensualidad' => 1000]);
         $planAgs = PlanPago::whereHas('sede', fn ($q) => $q->where('clave', 'CUOP-AGS'))->first();
         $carrera = Carrera::first();
 
@@ -74,7 +75,8 @@ class PlanesPorSedeTest extends TestCase
         $ofrecidos = $c->instance()->planesFormulario->pluck('id');
         $this->assertTrue($ofrecidos->contains($planLor->id));
         $this->assertFalse($ofrecidos->contains($planAgs->id));
-        $c->assertSet('form.plan_pago_id', $planLor->id); // única opción: se preselecciona
+        $this->assertFalse($ofrecidos->contains($planCal->id));
+        $this->assertTrue($ofrecidos->contains(PlanPago::where('sede_id', $this->lor->id)->where('nombre', 'PLAN 1370')->value('id')));
 
         // Forzar un plan de otra sede desde el navegador es rechazado por el servidor.
         $c->set('form.plan_pago_id', $planAgs->id)->call('guardar')->assertHasErrors('form.plan_pago_id');
@@ -83,8 +85,9 @@ class PlanesPorSedeTest extends TestCase
         $c->set('form.plan_pago_id', $planLor->id)->call('guardar')->assertHasNoErrors();
         $this->assertSame($planLor->id, Alumno::find('CUOP27100')->plan_pago_id);
 
-        // Cambiar de sede limpia el plan si ya no aplica.
-        $c->call('editar', 'CUOP27100')->set('form.sede_id', $this->cal->id)->assertSet('form.plan_pago_id', null);
+        // Cambiar de sede: el plan de Loreto ya no aplica; Calvillo tiene un solo plan y se preselecciona.
+        $c->call('editar', 'CUOP27100')->set('form.sede_id', $this->cal->id)->assertSet('form.plan_pago_id', $planCal->id);
+        $c->set('form.sede_id', Sede::where('clave', 'CUOP-SJO')->value('id'))->assertSet('form.plan_pago_id', null);
     }
 
     public function test_importacion_resuelve_el_plan_por_nombre_dentro_de_la_sede(): void

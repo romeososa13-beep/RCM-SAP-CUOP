@@ -43,12 +43,15 @@ php artisan serve
 ```
 
 **En producción** no use `--seed` (crea alumnos y pagos de prueba). Cargue solo los catálogos
-reales (roles y sedes: Loreto, Ciénega, San José, Calvillo, Aguascalientes):
+reales (roles, las 5 sedes, las 5 carreras y los planes de Loreto):
 
 ```bash
 php artisan migrate --force
 php artisan db:seed --class=CatalogosSeeder --force
 ```
+
+Luego entre como Administrador, cree los usuarios reales en **Usuarios** y cargue el padrón
+en **Padrón de alumnos › Importar Excel / CSV** (se lee la primera hoja del libro).
 
 Usuarios de prueba creados por `--seed` (contraseña `password`): `admin@cuop.test` (Administrador),
 `caja@cuop.test` (Cajero), `escolar@cuop.test` (Control Escolar).
@@ -80,7 +83,7 @@ app/
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               21 pruebas (Cobranza, Administracion, PlanesPorSede)
+tests/Feature/               22 pruebas (Cobranza, Administracion, PlanesPorSede)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
