@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
         $middleware->redirectGuestsTo('/login');
+        $middleware->web(append: [\App\Http\Middleware\AsegurarUsuarioActivo::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

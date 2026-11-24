@@ -11,7 +11,7 @@ class Adeudo extends Model
 {
     protected $fillable = [
         'matricula', 'concepto', 'fecha_vencimiento',
-        'monto_original', 'recargo_aplicado', 'pagado',
+        'monto_original', 'recargo_aplicado', 'pagado', 'creado_por',
     ];
 
     protected $attributes = [
@@ -32,6 +32,11 @@ class Adeudo extends Model
     public function alumno(): BelongsTo
     {
         return $this->belongsTo(Alumno::class, 'matricula', 'matricula');
+    }
+
+    public function creadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creado_por');
     }
 
     /** Pagos vigentes (los cancelados quedan en soft delete y no cuentan). */

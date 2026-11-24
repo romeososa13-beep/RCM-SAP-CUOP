@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\CorteCajaExportController;
 use App\Http\Controllers\ReciboPagoController;
+use App\Livewire\Admin\Catalogos;
+use App\Livewire\Admin\Usuarios;
 use App\Livewire\Alumnos\PadronAlumnos;
 use App\Livewire\Auth\Login;
+use App\Livewire\Auth\MiCuenta;
 use App\Livewire\Caja\EstadoCuenta;
 use App\Livewire\Reportes\CarteraVencida;
 use App\Livewire\Reportes\CorteCaja;
@@ -47,5 +50,11 @@ Route::middleware('auth')->group(function () {
     });
     Route::middleware('role:Administrador')->group(function () {
         Route::get('/reportes/cartera-vencida', CarteraVencida::class)->name('reportes.cartera-vencida');
+
+        // Administración
+        Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios');
+        Route::get('/admin/catalogos', Catalogos::class)->name('admin.catalogos');
     });
+
+    Route::get('/mi-cuenta', MiCuenta::class)->name('mi-cuenta');
 });

@@ -3,12 +3,14 @@
 namespace App\Livewire\Caja;
 
 use App\Actions\Cobranza\CancelarPagoAction;
+use App\Actions\Cobranza\CrearCargoAction;
 use App\Actions\Cobranza\RegistrarPagoAction;
 use App\Enums\FormaPago;
 use App\Exceptions\CobranzaException;
 use App\Models\Adeudo;
 use App\Models\Alumno;
 use App\Models\Pago;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -51,6 +53,12 @@ class EstadoCuenta extends Component
     public ?int $pagoCancelarId = null;
 
     public string $motivoCancelacion = '';
+
+    /* ---------------- Modal de cargo manual ---------------- */
+    public bool $modalCargo = false;
+    public string $cargoConcepto = '';
+    public string $cargoMonto = '';
+    public string $cargoVencimiento = '';
 
     /** Último recibo emitido: respaldo si el navegador bloquea la pestaña emergente. */
     public ?string $ultimoReciboUrl = null;
@@ -105,6 +113,7 @@ class EstadoCuenta extends Component
             ->where('matricula', $this->matricula)
             ->when(! $this->mostrarPagados, fn ($q) => $q->where('pagado', false))
             ->with('pagos:id,adeudo_id,monto_pagado')
+            ->withCount(['pagos as pagos_historicos' => fn ($q) => $q->withTrashed()])
             ->orderBy('fecha_vencimiento')
             ->orderBy('id')
             ->get();
@@ -275,6 +284,61 @@ class EstadoCuenta extends Component
     }
 
     /* =====================================================================
+     |  Cargos manuales (inscripción, constancias, extraordinarios…)
+     | ===================================================================== */
+
+    public function abrirModalCargo(): void
+    {
+        abort_unless($this->matricula, 404);
+
+        $this->cargoConcepto = '';
+        $this->cargoMonto = '';
+        $this->cargoVencimiento = today()->toDateString();
+        $this->resetValidation();
+        $this->modalCargo = true;
+    }
+
+    public function guardarCargo(CrearCargoAction $crearCargo): void
+    {
+        $this->validate([
+            'cargoConcepto' => 'required|string|max:150',
+            'cargoMonto' => ['required', 'numeric', 'min:0.01', 'max:999999.99', 'regex:/^\d+(\.\d{1,2})?$/'],
+            'cargoVencimiento' => 'required|date',
+        ], ['cargoMonto.regex' => 'Capture el monto con máximo 2 decimales.'],
+            ['cargoConcepto' => 'concepto', 'cargoMonto' => 'monto', 'cargoVencimiento' => 'vencimiento']);
+
+        try {
+            $adeudo = $crearCargo->execute($this->matricula, $this->cargoConcepto, $this->cargoMonto,
+                Carbon::parse($this->cargoVencimiento), auth()->user());
+        } catch (CobranzaException $e) {
+            $this->addError('cargoConcepto', $e->getMessage());
+
+            return;
+        }
+
+        $this->modalCargo = false;
+        $this->refrescar();
+        $this->dispatch('toast', tipo: 'success', mensaje: "Cargo #{$adeudo->id} agregado: {$adeudo->concepto}.");
+    }
+
+    public function eliminarCargo(int $adeudoId, CrearCargoAction $crearCargo): void
+    {
+        abort_unless(auth()->user()->hasRole('Administrador'), 403);
+        abort_unless(Adeudo::whereKey($adeudoId)->where('matricula', $this->matricula)->exists(), 404);
+
+        try {
+            $crearCargo->eliminar($adeudoId, auth()->user());
+        } catch (CobranzaException $e) {
+            $this->dispatch('toast', tipo: 'error', mensaje: $e->getMessage());
+
+            return;
+        }
+
+        $this->refrescar();
+        $this->dispatch('toast', tipo: 'success', mensaje: 'Cargo eliminado.');
+    }
+
+    /* =====================================================================
      |  Cancelación de pagos (solo Administrador)
      | ===================================================================== */
 
@@ -329,6 +393,7 @@ class EstadoCuenta extends Component
     {
         return view('livewire.caja.estado-cuenta', [
             'formasPago' => FormaPago::cases(),
+            'conceptosSugeridos' => CrearCargoAction::CONCEPTOS_SUGERIDOS,
         ]);
     }
 }

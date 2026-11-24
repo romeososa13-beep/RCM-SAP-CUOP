@@ -66,11 +66,14 @@ app/
 ├── Livewire/Caja/           EstadoCuenta
 ├── Livewire/Alumnos/        PadronAlumnos
 ├── Livewire/Reportes/       CorteCaja, CarteraVencida
+├── Livewire/Admin/          Usuarios (alta, rol, contraseña, desactivar), Catalogos (sedes, carreras, planes)
+├── Livewire/Auth/           Login, MiCuenta (cambio de contraseña)
 └── Models/                  Sede, Carrera, PlanPago, Alumno, Adeudo, Pago, FolioConsecutivo
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/CobranzaTest   9 pruebas de punta a punta
+tests/Feature/               16 pruebas (CobranzaTest, AdministracionTest)
+scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
 ## Comandos
@@ -94,4 +97,8 @@ DB_CONNECTION=mysql DB_DATABASE=erp_cuop_test php artisan test  # contra MySQL
   reutiliza, el recibo reimpreso sale marcado **CANCELADO** y el adeudo se reabre.
 - Recargos: un solo recargo por adeudo, idempotente y seguro ante ejecuciones simultáneas.
 - Mensualidades: solo alumnos ACTIVOS; vencimiento = día 1 + `dias_tolerancia`; no duplica.
+- Cargos manuales (inscripción, constancias…) desde el estado de cuenta, con registro de quién
+  los capturó; solo un Administrador puede eliminarlos y solo si nunca tuvieron pagos.
+- Usuarios: no se borran, se desactivan (pierden la sesión al instante). Un administrador
+  no puede quitarse su propio rol ni desactivarse.
 - Importación: se re-analiza el archivo en el servidor al confirmar (no se confía en el preview).

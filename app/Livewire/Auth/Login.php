@@ -34,9 +34,9 @@ class Login extends Component
             return;
         }
 
-        if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        if (! Auth::attempt(['email' => $this->email, 'password' => $this->password, 'activo' => true], $this->remember)) {
             RateLimiter::hit($key);
-            $this->addError('email', 'Credenciales incorrectas.');
+            $this->addError('email', 'Credenciales incorrectas o usuario desactivado.');
 
             return;
         }

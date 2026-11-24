@@ -153,10 +153,16 @@
                     Adeudos
                     <span class="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{{ $this->totales['conceptos'] }} pendientes</span>
                 </h3>
-                <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
-                    <input type="checkbox" wire:model.live="mostrarPagados" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                    Mostrar pagados
-                </label>
+                <div class="flex items-center gap-4">
+                    <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+                        <input type="checkbox" wire:model.live="mostrarPagados" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        Mostrar pagados
+                    </label>
+                    <button wire:click="abrirModalCargo"
+                            class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                        + Agregar cargo
+                    </button>
+                </div>
             </div>
 
             <div class="relative overflow-x-auto">
@@ -206,6 +212,14 @@
                                     @else
                                         <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">PAGADO</span>
                                     @endif
+                                    @role('Administrador')
+                                        @if ($adeudo->pagos_historicos === 0)
+                                            <button wire:click="eliminarCargo({{ $adeudo->id }})"
+                                                    wire:confirm="¿Eliminar el cargo «{{ $adeudo->concepto }}»? Solo procede si nunca tuvo pagos."
+                                                    title="Eliminar cargo capturado por error"
+                                                    class="ml-1 rounded-md px-1.5 py-1 text-xs text-slate-400 hover:bg-red-50 hover:text-red-600">✕</button>
+                                        @endif
+                                    @endrole
                                 </td>
                             </tr>
                         @empty
@@ -384,6 +398,48 @@
                 </form>
             @endif
         </div>
+    </div>
+
+    {{-- =============================================================
+         MODAL DE CARGO MANUAL
+       ============================================================= --}}
+    <div x-data="{ open: @entangle('modalCargo') }" x-show="open" x-cloak
+         x-on:keydown.escape.window="open = false"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div x-show="open" x-transition.opacity class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+        <form x-show="open" x-transition wire:submit="guardarCargo" class="relative w-full max-w-md rounded-xl bg-white shadow-2xl">
+            <div class="border-b border-slate-200 px-6 py-4">
+                <h3 class="text-lg font-bold">Agregar cargo</h3>
+                <p class="text-sm text-slate-500">Para conceptos distintos a la mensualidad. Queda registrado quién lo capturó.</p>
+            </div>
+            <div class="space-y-4 px-6 py-5">
+                <div>
+                    <label class="mb-1 block text-sm font-medium">Concepto</label>
+                    <input wire:model="cargoConcepto" list="conceptos-sugeridos" maxlength="150" placeholder="Ej. INSCRIPCIÓN 2027-1"
+                           class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase">
+                    <datalist id="conceptos-sugeridos">
+                        @foreach ($conceptosSugeridos as $c) <option value="{{ $c }}"> @endforeach
+                    </datalist>
+                    @error('cargoConcepto') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium">Monto $</label>
+                        <input type="number" step="0.01" min="0.01" wire:model="cargoMonto" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-right text-sm">
+                        @error('cargoMonto') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium">Vencimiento</label>
+                        <input type="date" wire:model="cargoVencimiento" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        @error('cargoVencimiento') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button type="button" x-on:click="open = false" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm">Cancelar</button>
+                <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Agregar cargo</button>
+            </div>
+        </form>
     </div>
 
     {{-- =============================================================

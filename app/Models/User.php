@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'activo',
     ];
 
     /**
@@ -44,6 +45,13 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'activo' => 'boolean',
         ];
+    }
+
+    /** Pagos cobrados por este usuario (cajero). */
+    public function pagos(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Pago::class);
     }
 }

@@ -27,12 +27,16 @@
                 @role('Administrador')
                     <a href="{{ route('reportes.cartera-vencida') }}" wire:navigate
                        @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.cartera-vencida')])>Cartera vencida</a>
+                    <a href="{{ route('admin.usuarios') }}" wire:navigate
+                       @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('admin.usuarios')])>Usuarios</a>
+                    <a href="{{ route('admin.catalogos') }}" wire:navigate
+                       @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('admin.catalogos')])>Catálogos</a>
                 @endrole
             </div>
             <div class="flex items-center gap-3 text-sm">
-                <span class="text-slate-300">{{ auth()->user()->name }}
+                <a href="{{ route('mi-cuenta') }}" wire:navigate class="text-slate-300 hover:text-white" title="Mi cuenta">{{ auth()->user()->name }}
                     <span class="ml-1 rounded bg-slate-700 px-1.5 py-0.5 text-xs">{{ auth()->user()->getRoleNames()->first() }}</span>
-                </span>
+                </a>
                 <form method="POST" action="{{ route('logout') }}">@csrf
                     <button class="rounded px-2 py-1 text-slate-300 hover:bg-slate-700 hover:text-white">Salir</button>
                 </form>
