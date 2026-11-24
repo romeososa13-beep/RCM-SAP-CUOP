@@ -39,10 +39,11 @@ class DatabaseSeeder extends Seeder
             ['nombre' => 'LICENCIATURA EN DERECHO', 'modalidad' => 'ESCOLARIZADO'],
         );
 
-        $planSabatino = PlanPago::updateOrCreate(['nombre' => 'SABATINO 2026'], [
+        // Cada sede tiene sus propios planes (datos de ejemplo; los reales se capturan en Catálogos).
+        $planSabatino = PlanPago::updateOrCreate(['nombre' => 'SABATINO 2026', 'sede_id' => $lor->id, 'carrera_id' => null], [
             'monto_mensualidad' => 1850.00, 'monto_recargo' => 185.00, 'dias_tolerancia' => 10,
         ]);
-        $planEscolar = PlanPago::updateOrCreate(['nombre' => 'ESCOLARIZADO 2026'], [
+        $planEscolar = PlanPago::updateOrCreate(['nombre' => 'ESCOLARIZADO 2026', 'sede_id' => $ags->id, 'carrera_id' => null], [
             'monto_mensualidad' => 2950.00, 'monto_recargo' => 300.00, 'dias_tolerancia' => 10,
         ]);
 

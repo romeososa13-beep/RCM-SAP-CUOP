@@ -8,6 +8,7 @@ use App\Models\Alumno;
 use App\Models\Carrera;
 use App\Models\PlanPago;
 use App\Models\Sede;
+use App\Rules\PlanCompatible;
 use App\Services\Padron\ImportarAlumnosService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -65,8 +66,35 @@ class PadronAlumnos extends Component
         return [
             'sedes' => Sede::orderBy('clave')->get(['id', 'clave', 'nombre']),
             'carreras' => Carrera::orderBy('nombre')->get(['id', 'nombre', 'modalidad']),
-            'planes' => PlanPago::orderBy('nombre')->get(['id', 'nombre', 'monto_mensualidad']),
         ];
+    }
+
+    /** Planes que se pueden asignar según la sede y carrera elegidas en el formulario. */
+    #[Computed]
+    public function planesFormulario()
+    {
+        $sede = filled($this->form['sede_id'] ?? null) ? (int) $this->form['sede_id'] : null;
+        $carrera = filled($this->form['carrera_id'] ?? null) ? (int) $this->form['carrera_id'] : null;
+
+        if (! $sede) {
+            return collect();
+        }
+
+        return PlanPago::compatibleCon($sede, $carrera)
+            ->with(['sede:id,clave', 'carrera:id,nombre'])
+            ->orderBy('nombre')
+            ->get(['id', 'nombre', 'sede_id', 'carrera_id', 'monto_mensualidad']);
+    }
+
+    /** Si cambia la sede o carrera y el plan elegido ya no aplica, se limpia. */
+    public function updatedForm($valor, string $campo): void
+    {
+        if (in_array($campo, ['sede_id', 'carrera_id'], true)) {
+            unset($this->planesFormulario);
+            if (! $this->planesFormulario->contains('id', (int) ($this->form['plan_pago_id'] ?? 0))) {
+                $this->form['plan_pago_id'] = $this->planesFormulario->count() === 1 ? $this->planesFormulario->first()->id : null;
+            }
+        }
     }
 
     #[Computed]
@@ -114,7 +142,10 @@ class PadronAlumnos extends Component
             'form.sede_id' => 'required|exists:sedes,id',
             'form.carrera_id' => 'required|exists:carreras,id',
             'form.grupo' => 'required|max:80',
-            'form.plan_pago_id' => 'required|exists:planes_pago,id',
+            'form.plan_pago_id' => ['required', 'exists:planes_pago,id', new PlanCompatible(
+                filled($this->form['sede_id'] ?? null) ? (int) $this->form['sede_id'] : null,
+                filled($this->form['carrera_id'] ?? null) ? (int) $this->form['carrera_id'] : null,
+            )],
             'form.estatus' => ['required', Rule::in(EstatusAlumno::valores())],
             'form.comentarios' => 'nullable|max:2000',
         ], [

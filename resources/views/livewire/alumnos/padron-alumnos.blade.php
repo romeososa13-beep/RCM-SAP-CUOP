@@ -104,7 +104,7 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium">Sede</label>
-                    <select wire:model="form.sede_id" class="{{ $in }}">
+                    <select wire:model.live="form.sede_id" class="{{ $in }}">
                         <option value="">—</option>
                         @foreach ($this->catalogos['sedes'] as $s) <option value="{{ $s->id }}">{{ $s->clave }} · {{ $s->nombre }}</option> @endforeach
                     </select>
@@ -112,7 +112,7 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium">Carrera</label>
-                    <select wire:model="form.carrera_id" class="{{ $in }}">
+                    <select wire:model.live="form.carrera_id" class="{{ $in }}">
                         <option value="">—</option>
                         @foreach ($this->catalogos['carreras'] as $c) <option value="{{ $c->id }}">{{ $c->nombre }} ({{ $c->modalidad }})</option> @endforeach
                     </select>
@@ -125,9 +125,11 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-sm font-medium">Plan de pago</label>
-                    <select wire:model="form.plan_pago_id" class="{{ $in }}">
-                        <option value="">—</option>
-                        @foreach ($this->catalogos['planes'] as $p) <option value="{{ $p->id }}">#{{ $p->id }} {{ $p->nombre }} (${{ number_format($p->monto_mensualidad, 2) }})</option> @endforeach
+                    <select wire:model="form.plan_pago_id" @disabled($this->planesFormulario->isEmpty()) class="{{ $in }}">
+                        <option value="">{{ filled($form['sede_id'] ?? null) ? ($this->planesFormulario->isEmpty() ? 'La sede no tiene planes' : '—') : 'Elija primero la sede' }}</option>
+                        @foreach ($this->planesFormulario as $p)
+                            <option value="{{ $p->id }}" wire:key="plan-{{ $p->id }}">#{{ $p->id }} {{ $p->nombre }}{{ $p->carrera ? ' · '.$p->carrera->nombre : '' }} (${{ number_format($p->monto_mensualidad, 2) }})</option>
+                        @endforeach
                     </select>
                     @error('form.plan_pago_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>

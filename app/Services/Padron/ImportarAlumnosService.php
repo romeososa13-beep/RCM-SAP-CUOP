@@ -36,9 +36,7 @@ class ImportarAlumnosService
     {
         $sedes = Sede::pluck('id', 'clave')->mapWithKeys(fn ($id, $k) => [mb_strtoupper($k) => $id]);
         $carreras = Carrera::pluck('id', 'nombre')->mapWithKeys(fn ($id, $k) => [mb_strtoupper($k) => $id]);
-        $planes = PlanPago::get(['id', 'nombre']);
-        $planPorNombre = $planes->mapWithKeys(fn ($p) => [mb_strtoupper($p->nombre) => $p->id]);
-        $planIds = $planes->pluck('id')->all();
+        $planes = PlanPago::with('sede:id,clave')->get(['id', 'nombre', 'sede_id', 'carrera_id'])->keyBy('id');
 
         $matriculas = $filas->map(fn ($f) => mb_strtoupper((string) ($f['matricula'] ?? '')))->filter()->unique();
         $existentes = $matriculas->chunk(1000)
@@ -60,11 +58,18 @@ class ImportarAlumnosService
                 'sede_id' => $sedes[mb_strtoupper((string) ($f['sede'] ?? ''))] ?? null,
                 'carrera_id' => $carreras[mb_strtoupper((string) ($f['carrera'] ?? ''))] ?? null,
                 'grupo' => mb_strtoupper((string) ($f['grupo'] ?? '')),
-                'plan_pago_id' => ctype_digit($plan) && in_array((int) $plan, $planIds, true)
-                    ? (int) $plan
-                    : ($planPorNombre[mb_strtoupper($plan)] ?? null),
+                'plan_pago_id' => null, // se resuelve abajo según la sede/carrera del alumno
                 'estatus' => mb_strtoupper(str_replace(' ', '_', (string) ($f['estatus'] ?? ''))) ?: 'ACTIVO',
             ];
+
+            // Sede y carrera con las que quedará el alumno (la sede no cambia en una actualización).
+            $sedeFinal = $existe ? $existe->sede_id : $datos['sede_id'];
+            $carreraFinal = $datos['carrera_id'] ?? $existe?->carrera_id;
+            $avisoPlan = null;
+
+            if ($plan !== '') {
+                [$datos['plan_pago_id'], $avisoPlan] = $this->resolverPlan($plan, $planes, $sedeFinal, $carreraFinal);
+            }
 
             $req = $existe ? 'nullable' : 'required';
             $v = Validator::make(
@@ -88,6 +93,17 @@ class ImportarAlumnosService
             );
 
             $mensajes = $v->errors()->all();
+
+            if ($avisoPlan) {
+                $mensajes = array_values(array_diff($mensajes, ['Plan de pago no existe en el catálogo.']));
+                $mensajes[] = $avisoPlan;
+            }
+
+            // El plan final (nuevo o el que ya tenía) debe corresponder a la sede y carrera finales.
+            $planFinal = $planes->get($datos['plan_pago_id'] ?? $existe?->plan_pago_id);
+            if (! $mensajes && $planFinal && $sedeFinal && ! $planFinal->esCompatibleCon($sedeFinal, $carreraFinal)) {
+                $mensajes[] = "El plan «{$planFinal->nombre}» (".($planFinal->sede?->clave ?? 'otra carrera').') no corresponde a la sede/carrera del alumno.';
+            }
 
             if ($mat !== '' && isset($vistas[$mat])) {
                 $mensajes[] = "Matrícula duplicada en el archivo (fila {$vistas[$mat]}).";
@@ -119,6 +135,35 @@ class ImportarAlumnosService
         }
 
         return $resultado;
+    }
+
+    /**
+     * PLAN_PAGO puede venir como ID o como nombre. Por nombre solo se buscan los
+     * planes de la sede (y carrera) del alumno, porque cada sede tiene los suyos
+     * y pueden repetir nombre. Devuelve [plan_id|null, mensaje de error|null].
+     */
+    private function resolverPlan(string $plan, Collection $planes, ?int $sedeId, ?int $carreraId): array
+    {
+        if (ctype_digit($plan)) {
+            return $planes->has((int) $plan) ? [(int) $plan, null] : [null, "Plan #{$plan} no existe."];
+        }
+
+        if (! $sedeId) {
+            return [null, null]; // el error de sede ya se reporta
+        }
+
+        $candidatos = $planes->filter(fn ($p) => mb_strtoupper($p->nombre) === mb_strtoupper($plan)
+            && $p->esCompatibleCon($sedeId, $carreraId));
+
+        // Preferir el plan específico de la carrera sobre el general de la sede.
+        $especificos = $candidatos->whereNotNull('carrera_id');
+        $elegibles = $especificos->isNotEmpty() ? $especificos : $candidatos;
+
+        return match ($elegibles->count()) {
+            1 => [$elegibles->first()->id, null],
+            0 => [null, "La sede del alumno no tiene un plan llamado «{$plan}»."],
+            default => [null, "Hay varios planes «{$plan}» para esa sede; use el ID del plan."],
+        };
     }
 
     /** @return array{creados:int, actualizados:int} */

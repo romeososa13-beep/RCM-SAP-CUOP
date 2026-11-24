@@ -80,7 +80,7 @@ app/
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               16 pruebas (CobranzaTest, AdministracionTest)
+tests/Feature/               21 pruebas (Cobranza, Administracion, PlanesPorSede)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
@@ -107,6 +107,10 @@ DB_CONNECTION=mysql DB_DATABASE=erp_cuop_test php artisan test  # contra MySQL
 - Mensualidades: solo alumnos ACTIVOS; vencimiento = día 1 + `dias_tolerancia`; no duplica.
 - Cargos manuales (inscripción, constancias…) desde el estado de cuenta, con registro de quién
   los capturó; solo un Administrador puede eliminarlos y solo si nunca tuvieron pagos.
+- **Planes de pago por sede**: cada plan pertenece a una sede (y opcionalmente a una carrera).
+  Un alumno solo puede tener un plan de su sede/carrera; el formulario solo ofrece esos planes.
+  En el Excel, `PLAN_PAGO` acepta el ID o el nombre: el nombre se busca solo dentro de la sede
+  del alumno, así que dos sedes pueden tener un plan llamado igual con montos distintos.
 - Usuarios: no se borran, se desactivan (pierden la sesión al instante). Un administrador
   no puede quitarse su propio rol ni desactivarse.
 - Importación: se re-analiza el archivo en el servidor al confirmar (no se confía en el preview).

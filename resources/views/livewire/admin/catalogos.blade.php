@@ -29,7 +29,7 @@
                     <th class="px-4 py-3">ID</th>
                     @if ($tab === 'sedes') <th class="px-4 py-3">Clave</th><th class="px-4 py-3">Nombre</th>
                     @elseif ($tab === 'carreras') <th class="px-4 py-3">Nombre</th><th class="px-4 py-3">Modalidad</th>
-                    @else <th class="px-4 py-3">Nombre</th><th class="px-4 py-3 text-right">Mensualidad</th><th class="px-4 py-3 text-right">Recargo</th><th class="px-4 py-3 text-right">Tolerancia</th>
+                    @else <th class="px-4 py-3">Sede</th><th class="px-4 py-3">Plan</th><th class="px-4 py-3 text-right">Mensualidad</th><th class="px-4 py-3 text-right">Recargo</th><th class="px-4 py-3 text-right">Tolerancia</th>
                     @endif
                     <th class="px-4 py-3 text-right">Alumnos</th><th class="px-4 py-3"></th>
                 </tr>
@@ -40,7 +40,10 @@
                         <td class="px-4 py-2.5 font-mono text-slate-500">{{ $r->id }}</td>
                         @if ($tab === 'sedes') <td class="px-4 py-2.5 font-mono font-semibold">{{ $r->clave }}</td><td class="px-4 py-2.5">{{ $r->nombre }}</td>
                         @elseif ($tab === 'carreras') <td class="px-4 py-2.5 font-medium">{{ $r->nombre }}</td><td class="px-4 py-2.5">{{ $r->modalidad }}</td>
-                        @else <td class="px-4 py-2.5 font-medium">{{ $r->nombre }}</td>
+                        @else <td class="whitespace-nowrap px-4 py-2.5"><span class="font-mono font-semibold">{{ $r->sede?->clave ?? 'TODAS' }}</span>
+                                <span class="block text-xs text-slate-500">{{ $r->sede?->nombre }}</span></td>
+                            <td class="px-4 py-2.5 font-medium">{{ $r->nombre }}
+                                <span class="block text-xs font-normal text-slate-500">{{ $r->carrera?->nombre ?? 'Todas las carreras' }}</span></td>
                             <td class="px-4 py-2.5 text-right tabular-nums">${{ number_format($r->monto_mensualidad, 2) }}</td>
                             <td class="px-4 py-2.5 text-right tabular-nums">${{ number_format($r->monto_recargo, 2) }}</td>
                             <td class="px-4 py-2.5 text-right">{{ $r->dias_tolerancia }} días</td>
@@ -77,6 +80,18 @@
                         <select wire:model="form.modalidad" class="{{ $in }}">@foreach ($modalidades as $m) <option>{{ $m }}</option> @endforeach</select></div>
                 @endif
                 @if ($tab === 'planes')
+                    <div><label class="mb-1 block text-sm font-medium">Sede</label>
+                        <select wire:model="form.sede_id" class="{{ $in }}">
+                            <option value="">— Seleccione —</option>
+                            @foreach ($sedes as $s) <option value="{{ $s->id }}">{{ $s->clave }} · {{ $s->nombre }}</option> @endforeach
+                        </select>
+                        @error('form.sede_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror</div>
+                    <div><label class="mb-1 block text-sm font-medium">Carrera <span class="font-normal text-slate-400">(opcional)</span></label>
+                        <select wire:model="form.carrera_id" class="{{ $in }}">
+                            <option value="">Todas las carreras de la sede</option>
+                            @foreach ($carreras as $c) <option value="{{ $c->id }}">{{ $c->nombre }} ({{ $c->modalidad }})</option> @endforeach
+                        </select>
+                        @error('form.carrera_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror</div>
                     <div class="grid grid-cols-2 gap-3">
                         <div><label class="mb-1 block text-sm font-medium">Mensualidad $</label><input type="number" step="0.01" wire:model="form.monto_mensualidad" class="{{ $in }} text-right">
                             @error('form.monto_mensualidad') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror</div>

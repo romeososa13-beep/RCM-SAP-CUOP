@@ -38,7 +38,7 @@ class Catalogos extends Component
         return match ($this->tab) {
             'sedes' => ['clave' => '', 'nombre' => ''],
             'carreras' => ['nombre' => '', 'modalidad' => 'ESCOLARIZADO'],
-            'planes' => ['nombre' => '', 'monto_mensualidad' => '', 'monto_recargo' => '0', 'dias_tolerancia' => 10],
+            'planes' => ['nombre' => '', 'sede_id' => null, 'carrera_id' => null, 'monto_mensualidad' => '', 'monto_recargo' => '0', 'dias_tolerancia' => 10],
         };
     }
 
@@ -79,7 +79,13 @@ class Catalogos extends Component
                 'form.modalidad' => 'required|max:50',
             ],
             'planes' => [
-                'form.nombre' => 'required|max:120',
+                'form.nombre' => ['required', 'max:120', Rule::unique('planes_pago', 'nombre')
+                    ->where(fn ($q) => $q
+                        ->where(fn ($q) => filled($this->form['sede_id'] ?? null) ? $q->where('sede_id', $this->form['sede_id']) : $q->whereNull('sede_id'))
+                        ->where(fn ($q) => filled($this->form['carrera_id'] ?? null) ? $q->where('carrera_id', $this->form['carrera_id']) : $q->whereNull('carrera_id')))
+                    ->ignore($id)],
+                'form.sede_id' => 'required|exists:sedes,id',
+                'form.carrera_id' => 'nullable|exists:carreras,id',
                 'form.monto_mensualidad' => 'required|numeric|min:0|max:999999.99',
                 'form.monto_recargo' => 'required|numeric|min:0|max:999999.99',
                 'form.dias_tolerancia' => 'required|integer|min:0|max:31',
@@ -88,11 +94,30 @@ class Catalogos extends Component
 
         $datos = $this->validate($reglas, [
             'form.clave.regex' => 'Solo letras, números y guiones (ej. CUOP-LOR).',
-            'form.nombre.unique' => 'Ya existe una carrera con ese nombre y modalidad.',
+            'form.nombre.unique' => $this->tab === 'planes'
+                ? 'Esa sede ya tiene un plan con ese nombre.'
+                : 'Ya existe una carrera con ese nombre y modalidad.',
         ], [
             'form.clave' => 'clave', 'form.nombre' => 'nombre', 'form.modalidad' => 'modalidad',
-            'form.monto_mensualidad' => 'mensualidad', 'form.monto_recargo' => 'recargo', 'form.dias_tolerancia' => 'días de tolerancia',
+            'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.monto_mensualidad' => 'mensualidad', 'form.monto_recargo' => 'recargo', 'form.dias_tolerancia' => 'días de tolerancia',
         ])['form'];
+
+        if ($this->tab === 'planes') {
+            $datos['carrera_id'] = filled($datos['carrera_id'] ?? null) ? $datos['carrera_id'] : null;
+
+            // No permitir mover un plan a otra sede/carrera si deja alumnos con un plan ajeno.
+            if ($id && ($plan = PlanPago::find($id))) {
+                $incompatibles = $plan->alumnos()
+                    ->where(fn ($q) => $q->where('sede_id', '!=', $datos['sede_id'])
+                        ->when($datos['carrera_id'], fn ($q) => $q->orWhere('carrera_id', '!=', $datos['carrera_id'])))
+                    ->count();
+                if ($incompatibles > 0) {
+                    $this->addError('form.sede_id', "{$incompatibles} alumno(s) con este plan quedarían fuera de su sede/carrera. Cámbieles el plan primero.");
+
+                    return;
+                }
+            }
+        }
 
         $clase = self::MODELOS[$this->tab];
         $id ? $clase::findOrFail($id)->update($datos) : $clase::create($datos);
@@ -111,6 +136,13 @@ class Catalogos extends Component
             return;
         }
 
+        $columna = ['sedes' => 'sede_id', 'carreras' => 'carrera_id'][$this->tab] ?? null;
+        if ($columna && ($planes = PlanPago::where($columna, $id)->count()) > 0) {
+            $this->dispatch('toast', tipo: 'error', mensaje: "No se puede eliminar: tiene {$planes} plan(es) de pago ligados.");
+
+            return;
+        }
+
         $m->delete();
         $this->dispatch('toast', tipo: 'success', mensaje: 'Registro eliminado.');
     }
@@ -119,8 +151,16 @@ class Catalogos extends Component
     {
         $clase = self::MODELOS[$this->tab] ?? abort(404);
 
+        $query = $clase::withCount('alumnos');
+        if ($this->tab === 'planes') {
+            $query->with(['sede:id,clave,nombre', 'carrera:id,nombre'])
+                ->orderByRaw('sede_id IS NULL')->orderBy('sede_id');
+        }
+
         return view('livewire.admin.catalogos', [
-            'registros' => $clase::withCount('alumnos')->orderBy($this->tab === 'sedes' ? 'clave' : 'nombre')->get(),
+            'registros' => $query->orderBy($this->tab === 'sedes' ? 'clave' : 'nombre')->get(),
+            'sedes' => $this->tab === 'planes' ? Sede::orderBy('clave')->get(['id', 'clave', 'nombre']) : collect(),
+            'carreras' => $this->tab === 'planes' ? Carrera::orderBy('nombre')->get(['id', 'nombre', 'modalidad']) : collect(),
             'modalidades' => ['ESCOLARIZADO', 'NO ESCOLARIZADO', 'MIXTO', 'EN LÍNEA'],
         ]);
     }
