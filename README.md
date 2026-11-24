@@ -88,14 +88,14 @@ app/
 ├── Http/Controllers/        ReciboPagoController (DomPDF 80 mm / media carta), CorteCajaExportController
 ├── Livewire/Caja/           EstadoCuenta
 ├── Livewire/Alumnos/        PadronAlumnos
-├── Livewire/Reportes/       CorteCaja, CarteraVencida
+├── Livewire/Reportes/       Tablero (inicio del Administrador), CorteCaja, CarteraVencida, BloqueoPlataformas
 ├── Livewire/Admin/          Usuarios (alta, rol, contraseña, desactivar), Catalogos (sedes, carreras, planes)
 ├── Livewire/Auth/           Login, MiCuenta (cambio de contraseña)
 └── Models/                  Sede, Carrera, PlanPago, Alumno, Adeudo, Pago, FolioConsecutivo
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               33 pruebas (Cobranza, Administracion, PlanesPorSede, ReglasCobranza, MigracionSaldos)
+tests/Feature/               37 pruebas (Cobranza, Administracion, PlanesPorSede, ReglasCobranza, MigracionSaldos, Tablero)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 

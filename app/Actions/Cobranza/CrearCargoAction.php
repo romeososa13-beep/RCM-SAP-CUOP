@@ -51,6 +51,10 @@ class CrearCargoAction
 
         $adeudo = Adeudo::query()->find($adeudoId) ?? throw new CobranzaException('El cargo no existe.');
 
+        if ($adeudo->origen === 'MIGRACION' || (float) $adeudo->pagado_previo > 0) {
+            throw new CobranzaException('No se puede eliminar: es un saldo migrado del sistema anterior (conserva lo que el alumno abonó allá).');
+        }
+
         if ($adeudo->pagos()->withTrashed()->exists()) {
             throw new CobranzaException('No se puede eliminar: el cargo tiene pagos registrados (vigentes o cancelados).');
         }

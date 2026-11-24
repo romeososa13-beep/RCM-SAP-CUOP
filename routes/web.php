@@ -11,6 +11,7 @@ use App\Livewire\Caja\EstadoCuenta;
 use App\Livewire\Reportes\BloqueoPlataformas;
 use App\Livewire\Reportes\CarteraVencida;
 use App\Livewire\Reportes\CorteCaja;
+use App\Livewire\Reportes\Tablero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -29,7 +30,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         $u = auth()->user();
 
-        return redirect()->route($u->hasAnyRole(['Administrador', 'Cajero']) ? 'caja.estado-cuenta' : 'alumnos.padron');
+        return redirect()->route(match (true) {
+            $u->hasRole('Administrador') => 'tablero',
+            $u->hasRole('Cajero') => 'caja.estado-cuenta',
+            default => 'alumnos.padron',
+        });
     })->name('home');
 
     // Módulo A: Caja
@@ -50,6 +55,7 @@ Route::middleware('auth')->group(function () {
             ->whereIn('formato', ['pdf', 'xlsx'])->name('reportes.corte-caja.exportar');
     });
     Route::middleware('role:Administrador')->group(function () {
+        Route::get('/tablero', Tablero::class)->name('tablero');
         Route::get('/reportes/cartera-vencida', CarteraVencida::class)->name('reportes.cartera-vencida');
 
         // Administración

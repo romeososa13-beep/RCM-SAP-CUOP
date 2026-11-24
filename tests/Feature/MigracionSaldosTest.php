@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Cobranza\CrearCargoAction;
 use App\Actions\Cobranza\RegistrarPagoAction;
 use App\Enums\FormaPago;
+use App\Exceptions\CobranzaException;
 use App\Models\Adeudo;
 use App\Models\Alumno;
 use App\Models\Pago;
@@ -92,6 +94,17 @@ class MigracionSaldosTest extends TestCase
 
         $this->assertSame(1, Adeudo::where('matricula', 'CUOP26003')->where('concepto', 'MENSUALIDAD ENE 2027')->count());
         $this->assertSame(0.0, Adeudo::where('matricula', 'CUOP26003')->where('concepto', 'MENSUALIDAD ENE 2027')->with('pagos')->first()->saldo_pendiente);
+    }
+
+    public function test_un_saldo_migrado_no_se_puede_eliminar(): void
+    {
+        $s = app(MigrarSaldosService::class);
+        $s->migrar($s->analizar(collect([$this->fila(['matricula' => 'CUOP26003', 'concepto' => 'TÍTULO', 'tipo' => 'OTRO',
+            'vencimiento' => '2026-11-30', 'monto' => 8000])])));
+        $adeudo = Adeudo::where('concepto', 'TÍTULO')->first();
+
+        $this->expectException(CobranzaException::class);
+        app(CrearCargoAction::class)->eliminar($adeudo->id, User::where('email', 'admin@cuop.test')->first());
     }
 
     public function test_comando_simular_no_guarda(): void

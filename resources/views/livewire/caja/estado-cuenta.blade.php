@@ -246,7 +246,7 @@
                                         <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">PAGADO</span>
                                     @endif
                                     @role('Administrador')
-                                        @if ($adeudo->pagos_historicos === 0)
+                                        @if ($adeudo->pagos_historicos === 0 && $adeudo->origen !== 'MIGRACION')
                                             <button wire:click="eliminarCargo({{ $adeudo->id }})"
                                                     wire:confirm="¿Eliminar el cargo «{{ $adeudo->concepto }}»? Solo procede si nunca tuvo pagos."
                                                     title="Eliminar cargo capturado por error"
