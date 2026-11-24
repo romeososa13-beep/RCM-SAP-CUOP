@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CorteCajaExportController;
 use App\Http\Controllers\ReciboPagoController;
+use App\Livewire\Admin\BitacoraCambios;
 use App\Livewire\Admin\Catalogos;
 use App\Livewire\Admin\Usuarios;
 use App\Livewire\Alumnos\PadronAlumnos;
@@ -61,6 +62,7 @@ Route::middleware('auth')->group(function () {
         // Administración
         Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios');
         Route::get('/admin/catalogos', Catalogos::class)->name('admin.catalogos');
+        Route::get('/admin/bitacora', BitacoraCambios::class)->name('admin.bitacora');
     });
 
     // Bloqueo de plataformas: lo consultan caja, control escolar y administración.

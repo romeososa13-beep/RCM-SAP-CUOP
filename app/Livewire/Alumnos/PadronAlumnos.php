@@ -5,11 +5,13 @@ namespace App\Livewire\Alumnos;
 use App\Enums\EstatusAlumno;
 use App\Exports\PlantillaAlumnosExport;
 use App\Models\Alumno;
+use App\Models\Bitacora;
 use App\Models\Carrera;
 use App\Models\PlanPago;
 use App\Models\Sede;
 use App\Rules\PlanCompatible;
 use App\Services\Padron\ImportarAlumnosService;
+use App\Support\BitacoraFormato;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -115,6 +117,20 @@ class PadronAlumnos extends Component
             ->when($this->sedeId, fn ($q) => $q->where('sede_id', $this->sedeId))
             ->when($this->carreraId, fn ($q) => $q->where('carrera_id', $this->carreraId))
             ->distinct()->orderBy('grupo')->pluck('grupo');
+    }
+
+    /** Últimos cambios del alumno y de sus cargos (solo al editar). */
+    #[Computed]
+    public function historial()
+    {
+        if (! $this->editando) {
+            return collect();
+        }
+
+        return Bitacora::query()->with('usuario:id,name')
+            ->where(fn ($q) => $q->where(fn ($q) => $q->where('entidad', 'alumno')->where('entidad_id', $this->editando))
+                ->orWhere(fn ($q) => $q->whereIn('entidad', ['adeudo', 'pago'])->where('descripcion', 'like', $this->editando.' ·%')))
+            ->orderByDesc('id')->limit(20)->get();
     }
 
     /* =================== Alta / edición individual =================== */
@@ -241,6 +257,7 @@ class PadronAlumnos extends Component
         return view('livewire.alumnos.padron-alumnos', [
             'alumnos' => $alumnos,
             'estatuses' => EstatusAlumno::cases(),
+            'fmt' => new BitacoraFormato,
         ]);
     }
 }

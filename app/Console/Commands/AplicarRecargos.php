@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Bitacora;
 use App\Services\Cobranza\RecargoService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -19,6 +20,12 @@ class AplicarRecargos extends Command
         $fecha = $this->option('fecha') ? Carbon::parse($this->option('fecha')) : today();
 
         $r = $service->aplicar($fecha, (bool) $this->option('simular'));
+
+        if (! $this->option('simular') && $r['aplicados'] > 0) {
+            Bitacora::registrar('proceso', 'proceso', 'cobranza:aplicar-recargos',
+                "Recargos aplicados: {$r['aplicados']} por $".number_format($r['monto'], 2)." (corte {$fecha->toDateString()})",
+                ['por_tipo' => ['antes' => null, 'despues' => $r['por_tipo']]]);
+        }
 
         $this->info(sprintf(
             '%sRecargos aplicados: %d (%s) | Monto total: $%s | Corte: %s',

@@ -43,6 +43,7 @@
                              class="absolute left-0 z-50 mt-1 w-44 overflow-hidden rounded-lg bg-white py-1 text-slate-700 shadow-lg ring-1 ring-slate-200">
                             <a href="{{ route('admin.usuarios') }}" wire:navigate class="block px-4 py-2 hover:bg-slate-100">Usuarios y roles</a>
                             <a href="{{ route('admin.catalogos') }}" wire:navigate class="block px-4 py-2 hover:bg-slate-100">Catálogos</a>
+                            <a href="{{ route('admin.bitacora') }}" wire:navigate class="block px-4 py-2 hover:bg-slate-100">Bitácora</a>
                         </div>
                     </div>
                 @endrole

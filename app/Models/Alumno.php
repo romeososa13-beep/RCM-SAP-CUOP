@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EstatusAlumno;
+use App\Models\Concerns\Auditable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,18 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Alumno extends Model
 {
+    use Auditable;
+
+    public function auditEntidad(): string
+    {
+        return 'alumno';
+    }
+
+    public function auditDescripcion(): ?string
+    {
+        return $this->nombre_completo;
+    }
+
     protected $primaryKey = 'matricula';
 
     public $incrementing = false;

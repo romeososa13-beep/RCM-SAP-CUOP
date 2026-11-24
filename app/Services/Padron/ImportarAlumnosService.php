@@ -5,6 +5,7 @@ namespace App\Services\Padron;
 use App\Enums\EstatusAlumno;
 use App\Imports\AlumnosImport;
 use App\Models\Alumno;
+use App\Models\Bitacora;
 use App\Models\Carrera;
 use App\Models\PlanPago;
 use App\Models\Sede;
@@ -140,7 +141,8 @@ class ImportarAlumnosService
                 ->all();
 
             if ($cambios) {
-                $resultado['actualizar'][] = ['matricula' => $mat, 'nombre_completo' => $existe->nombre_completo, 'cambios' => $cambios];
+                $resultado['actualizar'][] = ['matricula' => $mat, 'nombre_completo' => $existe->nombre_completo, 'cambios' => $cambios,
+                    'antes' => collect($cambios)->map(fn ($v, $k) => $existe->{$k} instanceof \BackedEnum ? $existe->{$k}->value : $existe->{$k})->all()];
             } else {
                 $resultado['sin_cambios']++;
             }
@@ -191,6 +193,16 @@ class ImportarAlumnosService
             foreach ($analisis['actualizar'] as $u) {
                 Alumno::whereKey($u['matricula'])->update($u['cambios'] + ['updated_at' => $ahora]);
             }
+
+            // Las operaciones masivas no disparan eventos de Eloquent: se registran aquí.
+            Bitacora::registrarLote('creado', 'alumno', array_map(fn ($d) => [
+                'entidad_id' => $d['matricula'], 'descripcion' => 'Importación de padrón · '.$d['nombre_completo'],
+                'cambios' => collect($d)->filter(fn ($v) => $v !== null)->map(fn ($v) => ['antes' => null, 'despues' => $v])->all(),
+            ], $analisis['crear']));
+            Bitacora::registrarLote('actualizado', 'alumno', array_map(fn ($u) => [
+                'entidad_id' => $u['matricula'], 'descripcion' => 'Importación de padrón · '.$u['nombre_completo'],
+                'cambios' => collect($u['cambios'])->map(fn ($v, $campo) => ['antes' => $u['antes'][$campo] ?? null, 'despues' => $v])->all(),
+            ], $analisis['actualizar']));
 
             return ['creados' => count($analisis['crear']), 'actualizados' => count($analisis['actualizar'])];
         });

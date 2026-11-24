@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Bitacora;
 use App\Services\Cobranza\MensualidadService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -21,6 +22,11 @@ class GenerarMensualidad extends Command
             : today()->startOfMonth();
 
         $r = $service->generar($mes, (bool) $this->option('simular'));
+
+        if (! $this->option('simular') && ($r['generados'] + $r['ingles']) > 0) {
+            Bitacora::registrar('proceso', 'proceso', 'cobranza:generar-mensualidad',
+                "{$r['concepto']}: {$r['generados']} colegiaturas y {$r['ingles']} cargos de inglés");
+        }
 
         $this->info(sprintf(
             '%s%s → colegiaturas: %d | inglés: %d | omitidos (ya existían / sin plan): %d',

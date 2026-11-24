@@ -89,13 +89,13 @@ app/
 ├── Livewire/Caja/           EstadoCuenta
 ├── Livewire/Alumnos/        PadronAlumnos
 ├── Livewire/Reportes/       Tablero (inicio del Administrador), CorteCaja, CarteraVencida, BloqueoPlataformas
-├── Livewire/Admin/          Usuarios (alta, rol, contraseña, desactivar), Catalogos (sedes, carreras, planes)
+├── Livewire/Admin/          Usuarios (alta, rol, contraseña, desactivar), Catalogos (sedes, carreras, planes), BitacoraCambios
 ├── Livewire/Auth/           Login, MiCuenta (cambio de contraseña)
 └── Models/                  Sede, Carrera, PlanPago, Alumno, Adeudo, Pago, FolioConsecutivo
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               37 pruebas (Cobranza, Administracion, PlanesPorSede, ReglasCobranza, MigracionSaldos, Tablero)
+tests/Feature/               44 pruebas (Cobranza, Administracion, PlanesPorSede, ReglasCobranza, MigracionSaldos, Tablero, Bitacora)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
@@ -141,6 +141,10 @@ formato con Pint, `composer audit` y la suite completa contra **MySQL 8** y **SQ
   junto con la colegiatura.
 - Teléfonos del alumno (celular, tutor, alterno): en el padrón, en caja y en el reporte de bloqueos.
 - El plan de pago es obligatorio solo para alumnos ACTIVOS; bajas y egresados pueden no tenerlo.
+- **Bitácora** (Administración › Bitácora): registra quién, cuándo, desde qué IP y qué cambió
+  (antes → después) en alumnos, cargos, cancelaciones de pagos, catálogos, usuarios y roles,
+  más un resumen de cada importación, migración, recargos y mensualidades automáticas.
+  Es de solo escritura y nunca guarda contraseñas. Cada alumno muestra su historial en el padrón.
 - Usuarios: no se borran, se desactivan (pierden la sesión al instante). Un administrador
   no puede quitarse su propio rol ni desactivarse.
 - Importación: se re-analiza el archivo en el servidor al confirmar (no se confía en el preview).

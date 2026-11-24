@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Bitacora;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -96,7 +97,13 @@ class Usuarios extends Component
             : User::create($datos + ['email_verified_at' => now()]);
 
         Role::findOrCreate($this->rol, 'web');
+        $rolAnterior = $user->getRoleNames()->first();
         $user->syncRoles([$this->rol]);
+
+        if ($rolAnterior !== $this->rol) {
+            Bitacora::registrar('rol', 'usuario', $user->id, $user->name.' <'.$user->email.'>',
+                ['rol' => ['antes' => $rolAnterior, 'despues' => $this->rol]]);
+        }
 
         $this->modal = false;
         $this->dispatch('toast', tipo: 'success', mensaje: $this->editandoId ? 'Usuario actualizado.' : 'Usuario creado.');

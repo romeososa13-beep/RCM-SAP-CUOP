@@ -151,6 +151,21 @@
                     <textarea wire:model="form.comentarios" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
                 </div>
             </div>
+            @if ($editando && $this->historial->isNotEmpty())
+                <details class="border-t border-slate-200 px-6 py-3">
+                    <summary class="cursor-pointer text-sm font-medium text-slate-700">Historial de cambios ({{ $this->historial->count() }})</summary>
+                    <ul class="mt-2 max-h-56 space-y-2 overflow-y-auto">
+                        @foreach ($this->historial as $r)
+                            <li wire:key="h-{{ $r->id }}" class="rounded-lg bg-slate-50 px-3 py-2">
+                                <p class="text-xs text-slate-500">{{ $r->created_at->format('d/m/Y H:i') }} · {{ $r->usuario?->name ?? 'Sistema' }}
+                                    · <span class="font-medium text-slate-700">{{ \App\Support\BitacoraFormato::ACCIONES[$r->accion] ?? $r->accion }}</span>
+                                    @if ($r->entidad !== 'alumno') · {{ $r->descripcion }} @endif</p>
+                                @include('livewire.admin.partials.cambios', ['f' => $fmt])
+                            </li>
+                        @endforeach
+                    </ul>
+                </details>
+            @endif
             <div class="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50 px-6 py-4">
                 <button type="button" x-on:click="open = false" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm">Cancelar</button>
                 <button class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Guardar</button>

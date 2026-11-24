@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Bitacora;
 use App\Services\Migracion\MigrarSaldosService;
 use Illuminate\Console\Command;
 
@@ -53,6 +54,8 @@ class MigrarSaldos extends Command
         }
 
         $n = $service->migrar($a);
+        Bitacora::registrar('proceso', 'proceso', 'cobranza:migrar-saldos',
+            "Saldos migrados: {$n} ({$a['liquidadas']} liquidados) por $".number_format($a['saldo'], 2).' · '.basename($this->argument('archivo')));
         $this->info("Migrados {$n} saldos (origen MIGRACION).");
 
         return self::SUCCESS;

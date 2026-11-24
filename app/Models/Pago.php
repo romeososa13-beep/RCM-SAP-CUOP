@@ -3,12 +3,30 @@
 namespace App\Models;
 
 use App\Enums\FormaPago;
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pago extends Model
 {
+    use Auditable;
+
+    /** Solo se registra la cancelación (crear un pago ya deja folio, cajero y fecha). */
+    protected array $auditEventos = ['deleted'];
+
+    protected array $auditIgnorar = ['cancelado_por'];
+
+    public function auditEntidad(): string
+    {
+        return 'pago';
+    }
+
+    public function auditDescripcion(): ?string
+    {
+        return ($this->adeudo?->matricula ? $this->adeudo->matricula.' · ' : '').'Folio '.$this->folio_pago.' · $'.number_format((float) $this->monto_pagado, 2).($this->motivo_cancelacion ? ' · '.$this->motivo_cancelacion : '');
+    }
+
     use SoftDeletes;
 
     protected $fillable = [

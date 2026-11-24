@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlanPago extends Model
 {
+    use Auditable;
+
+    public function auditEntidad(): string
+    {
+        return 'plan_pago';
+    }
+
+    public function auditDescripcion(): ?string
+    {
+        return $this->nombre;
+    }
+
     protected $table = 'planes_pago';
 
     protected $fillable = ['nombre', 'sede_id', 'carrera_id', 'monto_mensualidad', 'monto_recargo', 'dias_tolerancia'];

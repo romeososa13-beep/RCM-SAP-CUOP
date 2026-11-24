@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\Auditable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +14,21 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use Auditable, HasFactory, HasRoles, Notifiable;
+
+    protected array $auditIgnorar = ['email_verified_at'];
+
+    protected array $auditOcultar = ['password'];
+
+    public function auditEntidad(): string
+    {
+        return 'usuario';
+    }
+
+    public function auditDescripcion(): ?string
+    {
+        return $this->name.' <'.$this->email.'>';
+    }
 
     /**
      * The attributes that are mass assignable.

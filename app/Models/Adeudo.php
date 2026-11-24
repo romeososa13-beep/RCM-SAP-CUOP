@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TipoAdeudo;
+use App\Models\Concerns\Auditable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,21 @@ use Illuminate\Support\Carbon;
 
 class Adeudo extends Model
 {
+    use Auditable;
+
+    /** «pagado» se deriva de los pagos; los pagos ya quedan registrados con su folio. */
+    protected array $auditIgnorar = ['pagado'];
+
+    public function auditEntidad(): string
+    {
+        return 'adeudo';
+    }
+
+    public function auditDescripcion(): ?string
+    {
+        return $this->matricula.' · '.$this->concepto;
+    }
+
     protected $fillable = [
         'matricula', 'concepto', 'tipo', 'fecha_vencimiento',
         'monto_original', 'recargo_aplicado', 'pagado_previo', 'exento_recargo', 'pagado', 'creado_por', 'origen',
