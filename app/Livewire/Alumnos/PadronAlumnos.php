@@ -170,11 +170,11 @@ class PadronAlumnos extends Component
             'form.celular' => 'nullable|max:20', 'form.tel_tutor' => 'nullable|max:20', 'form.tel_alterno' => 'nullable|max:20',
             'form.comentarios' => 'nullable|max:2000',
         ], [
-                'form.matricula.in' => 'La matrícula no se puede modificar.',
-                'form.plan_pago_id.required' => 'Un alumno ACTIVO necesita plan de pago.',
+            'form.matricula.in' => 'La matrícula no se puede modificar.',
+            'form.plan_pago_id.required' => 'Un alumno ACTIVO necesita plan de pago.',
         ], [
-                'form.matricula' => 'matrícula', 'form.nombre_completo' => 'nombre',
-                'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.plan_pago_id' => 'plan de pago', 'form.costo_ingles' => 'costo de inglés',
+            'form.matricula' => 'matrícula', 'form.nombre_completo' => 'nombre',
+            'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.plan_pago_id' => 'plan de pago', 'form.costo_ingles' => 'costo de inglés',
         ])['form'];
 
         Alumno::updateOrCreate(['matricula' => $datos['matricula']], $datos);

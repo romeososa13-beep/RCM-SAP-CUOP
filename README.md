@@ -108,6 +108,11 @@ php artisan test                                              # SQLite en memori
 DB_CONNECTION=mysql DB_DATABASE=erp_cuop_test php artisan test  # contra MySQL
 ```
 
+## Pruebas automáticas (CI)
+
+Cada push a `main` y cada pull request corre en GitHub Actions (`.github/workflows/pruebas.yml`):
+formato con Pint, `composer audit` y la suite completa contra **MySQL 8** y **SQLite**.
+
 ## Reglas de negocio implementadas
 
 - `monto_original` nunca se modifica; `saldo_pendiente` = original + recargo − pagos vigentes.
