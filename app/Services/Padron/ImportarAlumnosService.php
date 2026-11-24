@@ -17,7 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class ImportarAlumnosService
 {
     /** Campos que se actualizan cuando la matrícula ya existe. */
-    public const CAMPOS_ACTUALIZABLES = ['grupo', 'carrera_id', 'plan_pago_id', 'estatus', 'costo_ingles'];
+    public const CAMPOS_ACTUALIZABLES = ['grupo', 'carrera_id', 'plan_pago_id', 'estatus', 'costo_ingles', 'celular', 'tel_tutor', 'tel_alterno'];
 
     /**
      * Lee y valida el archivo SIN escribir en la base de datos.
@@ -60,6 +60,10 @@ class ImportarAlumnosService
                 'grupo' => mb_strtoupper((string) ($f['grupo'] ?? '')),
                 'plan_pago_id' => null, // se resuelve abajo según la sede/carrera del alumno
                 // INGLES (opcional): costo mensual; vacío = sin cambio; 0 = deja de cursar inglés.
+                // Teléfonos (opcionales): solo dígitos; vacío = sin cambio.
+                'celular' => Alumno::normalizarTelefono($f['celular'] ?? null),
+                'tel_tutor' => Alumno::normalizarTelefono($f['tel_tutor'] ?? null),
+                'tel_alterno' => Alumno::normalizarTelefono($f['tel_alterno'] ?? null),
                 'costo_ingles' => ! filled($f['ingles'] ?? null) ? null
                     : (is_numeric($f['ingles']) ? number_format((float) $f['ingles'], 2, '.', '') : (string) $f['ingles']),
                 'estatus' => mb_strtoupper(str_replace(' ', '_', (string) ($f['estatus'] ?? ''))) ?: 'ACTIVO',

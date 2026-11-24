@@ -26,7 +26,7 @@ class ReciboPagoController extends Controller
         $abonadoHastaEste = $pago->adeudo->pagos
             ->filter(fn ($p) => $p->id <= $pago->id)
             ->sum('monto_pagado');
-        $saldoDespues = round($pago->adeudo->total_cargo - $abonadoHastaEste, 2);
+        $saldoDespues = round($pago->adeudo->total_cargo - (float) $pago->adeudo->pagado_previo - $abonadoHastaEste, 2);
 
         $pdf = Pdf::loadView('pdf.recibo', [
             'pago' => $pago,

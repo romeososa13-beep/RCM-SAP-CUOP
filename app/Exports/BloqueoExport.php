@@ -15,7 +15,7 @@ class BloqueoExport implements FromCollection, WithHeadings, ShouldAutoSize
 
     public function headings(): array
     {
-        return ['MATRICULA', 'NOMBRE_COMPLETO', 'SEDE', 'CARRERA', 'GRUPO', 'BLOQUEO_DESDE', 'CONCEPTOS_VENCIDOS', 'SALDO'];
+        return ['MATRICULA', 'NOMBRE_COMPLETO', 'SEDE', 'CARRERA', 'GRUPO', 'BLOQUEO_DESDE', 'CONCEPTOS_VENCIDOS', 'SALDO', 'CELULAR', 'TEL_TUTOR'];
     }
 
     public function collection(): Collection
@@ -23,6 +23,7 @@ class BloqueoExport implements FromCollection, WithHeadings, ShouldAutoSize
         return $this->filas->map(fn ($f) => [
             $f['alumno']->matricula, $f['alumno']->nombre_completo, $f['alumno']->sede->clave, $f['alumno']->carrera->nombre,
             $f['alumno']->grupo, $f['desde']->format('d/m/Y'), $f['conceptos'], $f['saldo'],
+            $f['alumno']->celular, $f['alumno']->tel_tutor,
         ]);
     }
 }

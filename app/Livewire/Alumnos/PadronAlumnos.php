@@ -113,7 +113,8 @@ class PadronAlumnos extends Component
         $this->editando = null;
         $this->form = [
             'matricula' => '', 'nombre_completo' => '', 'sede_id' => $this->sedeId, 'carrera_id' => $this->carreraId,
-            'grupo' => $this->grupo, 'plan_pago_id' => null, 'costo_ingles' => null, 'estatus' => 'ACTIVO', 'comentarios' => '',
+            'grupo' => $this->grupo, 'plan_pago_id' => null, 'costo_ingles' => null,
+            'celular' => '', 'tel_tutor' => '', 'tel_alterno' => '', 'estatus' => 'ACTIVO', 'comentarios' => '',
         ];
         $this->resetValidation();
         $this->modalForm = true;
@@ -123,7 +124,7 @@ class PadronAlumnos extends Component
     {
         $a = Alumno::findOrFail($matricula);
         $this->editando = $a->matricula;
-        $this->form = $a->only(['matricula', 'nombre_completo', 'sede_id', 'carrera_id', 'grupo', 'plan_pago_id', 'costo_ingles', 'comentarios'])
+        $this->form = $a->only(['matricula', 'nombre_completo', 'sede_id', 'carrera_id', 'grupo', 'plan_pago_id', 'costo_ingles', 'celular', 'tel_tutor', 'tel_alterno', 'comentarios'])
             + ['estatus' => $a->estatus->value];
         $this->resetValidation();
         $this->modalForm = true;
@@ -135,6 +136,9 @@ class PadronAlumnos extends Component
         $this->form['nombre_completo'] = mb_strtoupper(trim((string) ($this->form['nombre_completo'] ?? '')));
         $this->form['grupo'] = mb_strtoupper(trim((string) ($this->form['grupo'] ?? '')));
         $this->form['plan_pago_id'] = filled($this->form['plan_pago_id'] ?? null) ? (int) $this->form['plan_pago_id'] : null;
+        foreach (['celular', 'tel_tutor', 'tel_alterno'] as $tel) {
+            $this->form[$tel] = Alumno::normalizarTelefono($this->form[$tel] ?? null);
+        }
         $this->form['costo_ingles'] = filled($this->form['costo_ingles'] ?? null) && (float) $this->form['costo_ingles'] > 0
             ? $this->form['costo_ingles'] : null;
 
@@ -152,6 +156,7 @@ class PadronAlumnos extends Component
             )],
             'form.estatus' => ['required', Rule::in(EstatusAlumno::valores())],
             'form.costo_ingles' => 'nullable|numeric|min:0|max:99999.99',
+            'form.celular' => 'nullable|max:20', 'form.tel_tutor' => 'nullable|max:20', 'form.tel_alterno' => 'nullable|max:20',
             'form.comentarios' => 'nullable|max:2000',
         ], [
             'form.matricula.in' => 'La matrícula no se puede modificar.',

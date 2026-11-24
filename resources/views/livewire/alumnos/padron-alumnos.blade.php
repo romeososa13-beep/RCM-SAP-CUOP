@@ -138,6 +138,14 @@
                     <input type="number" step="0.01" min="0" wire:model="form.costo_ingles" placeholder="350.00" class="{{ $in }} text-right">
                     @error('form.costo_ingles') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
+                <div class="grid grid-cols-3 gap-3 md:col-span-2">
+                    @foreach (['celular' => 'Celular', 'tel_tutor' => 'Tel. tutor', 'tel_alterno' => 'Tel. alterno'] as $campo => $etiqueta)
+                        <div>
+                            <label class="mb-1 block text-sm font-medium">{{ $etiqueta }}</label>
+                            <input type="tel" wire:model="form.{{ $campo }}" maxlength="20" class="{{ $in }} font-mono">
+                        </div>
+                    @endforeach
+                </div>
                 <div class="md:col-span-2">
                     <label class="mb-1 block text-sm font-medium">Comentarios</label>
                     <textarea wire:model="form.comentarios" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
@@ -157,7 +165,7 @@
             <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div>
                     <h3 class="text-lg font-bold">Actualización masiva del padrón</h3>
-                    <p class="text-sm text-slate-500">Matrículas nuevas se crean; existentes actualizan grupo, carrera, plan de pago, estatus e inglés.</p>
+                    <p class="text-sm text-slate-500">Matrículas nuevas se crean; existentes actualizan grupo, carrera, plan de pago, estatus, inglés y teléfonos.</p>
                 </div>
                 <button wire:click="descargarPlantilla" class="text-sm font-medium text-emerald-700 hover:underline">Descargar plantilla</button>
             </div>
@@ -166,7 +174,7 @@
                 <label class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 px-6 py-8 text-center hover:border-emerald-400 hover:bg-emerald-50/40">
                     <input type="file" wire:model="archivo" accept=".xlsx,.xls,.csv" class="sr-only">
                     <span class="text-sm font-medium text-slate-700">Seleccione un archivo .xlsx o .csv</span>
-                    <span class="text-xs text-slate-500">Columnas: MATRICULA, NOMBRE_COMPLETO, SEDE, CARRERA, GRUPO, PLAN_PAGO, ESTATUS, INGLES (opcional)</span>
+                    <span class="text-xs text-slate-500">Columnas: MATRICULA, NOMBRE_COMPLETO, SEDE, CARRERA, GRUPO, PLAN_PAGO, ESTATUS · opcionales: INGLES, CELULAR, TEL_TUTOR, TEL_ALTERNO</span>
                     @if ($archivo) <span class="mt-2 font-mono text-xs text-emerald-700">{{ $archivo->getClientOriginalName() }}</span> @endif
                 </label>
                 <div wire:loading wire:target="archivo" class="text-sm text-slate-500">Analizando archivo…</div>

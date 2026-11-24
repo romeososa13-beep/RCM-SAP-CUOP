@@ -86,7 +86,11 @@
                     </div>
                     <div>
                         <h2 class="text-lg font-bold leading-tight text-slate-900">{{ $alumno->nombre_completo }}</h2>
-                        <p class="font-mono text-sm text-slate-600">{{ $alumno->matricula }}</p>
+                        <p class="font-mono text-sm text-slate-600">{{ $alumno->matricula }}
+                            @foreach ($alumno->telefonos as $tipo => $tel)
+                                <a href="tel:{{ $tel }}" class="ml-3 text-xs text-slate-500 hover:text-emerald-700" title="{{ $tipo }}">☎ {{ $tipo }}: {{ $tel }}</a>
+                            @endforeach
+                        </p>
                     </div>
                     <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $alumno->estatus->color() }}">
                         {{ $alumno->estatus->etiqueta() }}
@@ -209,6 +213,7 @@
                                         'bg-slate-100 text-slate-600' => $adeudo->tipo === \App\Enums\TipoAdeudo::COLEGIATURA,
                                         'bg-sky-100 text-sky-700' => $adeudo->tipo === \App\Enums\TipoAdeudo::INGLES,
                                         'bg-violet-100 text-violet-700' => $adeudo->tipo === \App\Enums\TipoAdeudo::OTRO])>{{ $adeudo->tipo === \App\Enums\TipoAdeudo::OTRO ? 'Otro' : $adeudo->tipo->etiqueta() }}</span>
+                                    @if ($adeudo->origen === 'MIGRACION') <span class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800" title="Saldo traído del sistema anterior">MIGRADO</span> @endif
                                     @if ($adeudo->causa_bloqueo) <span class="ml-1 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">BLOQUEO</span> @endif
                                 </td>
                                 <td class="px-4 py-3">
@@ -225,7 +230,11 @@
                                         <span class="block text-xs text-red-600">+ ${{ number_format($adeudo->recargo_aplicado, 2) }} recargo</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-right tabular-nums text-emerald-700">${{ number_format($adeudo->total_pagado, 2) }}</td>
+                                <td class="px-4 py-3 text-right tabular-nums text-emerald-700">${{ number_format($adeudo->total_pagado, 2) }}
+                                    @if ((float) $adeudo->pagado_previo > 0)
+                                        <span class="block text-xs text-slate-500" title="Abonado en el sistema anterior (INTELL/EDUCAPP)">${{ number_format($adeudo->pagado_previo, 2) }} en sistema anterior</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-right font-semibold tabular-nums">${{ number_format($adeudo->saldo_pendiente, 2) }}</td>
                                 <td class="px-4 py-3 text-center">
                                     @if ($adeudo->saldo_pendiente > 0)

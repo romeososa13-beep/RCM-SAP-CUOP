@@ -12,11 +12,14 @@ class Adeudo extends Model
 {
     protected $fillable = [
         'matricula', 'concepto', 'tipo', 'fecha_vencimiento',
-        'monto_original', 'recargo_aplicado', 'pagado', 'creado_por',
+        'monto_original', 'recargo_aplicado', 'pagado_previo', 'exento_recargo', 'pagado', 'creado_por', 'origen',
     ];
 
     protected $attributes = [
         'recargo_aplicado' => '0.00',
+        'pagado_previo' => '0.00',
+        'exento_recargo' => false,
+        'origen' => 'SISTEMA',
         'pagado' => false,
         'tipo' => 'OTRO',
     ];
@@ -28,6 +31,8 @@ class Adeudo extends Model
             'fecha_vencimiento' => 'date',
             'monto_original' => 'decimal:2',
             'recargo_aplicado' => 'decimal:2',
+            'pagado_previo' => 'decimal:2',
+            'exento_recargo' => 'boolean',
             'pagado' => 'boolean',
         ];
     }
@@ -50,7 +55,8 @@ class Adeudo extends Model
 
     /* ----------------------------------------------------------------
      |  Accessors de saldo. monto_original NUNCA se modifica: el saldo
-     |  siempre se deriva de cargo + recargo - pagos vigentes.
+     |  siempre se deriva de cargo + recargo - pagado en el sistema
+     |  anterior (saldos migrados) - pagos vigentes de esta caja.
      | ---------------------------------------------------------------- */
 
     public function getTotalCargoAttribute(): float
@@ -58,14 +64,15 @@ class Adeudo extends Model
         return round((float) $this->monto_original + (float) $this->recargo_aplicado, 2);
     }
 
+    /** Pagado en esta caja + lo abonado en el sistema anterior. */
     public function getTotalPagadoAttribute(): float
     {
-        return round((float) $this->pagos->sum('monto_pagado'), 2);
+        return round((float) $this->pagado_previo + (float) $this->pagos->sum('monto_pagado'), 2);
     }
 
     public function getSaldoPendienteAttribute(): float
     {
-        return round(($this->monto_original + $this->recargo_aplicado) - $this->pagos->sum('monto_pagado'), 2);
+        return round(($this->monto_original + $this->recargo_aplicado) - $this->pagado_previo - $this->pagos->sum('monto_pagado'), 2);
     }
 
     public function getEstaVencidoAttribute(): bool

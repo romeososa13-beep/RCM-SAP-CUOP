@@ -46,7 +46,7 @@ class CarteraVencida extends Component
 
     public function render()
     {
-        $saldoSql = 'SUM(a.monto_original + a.recargo_aplicado - COALESCE(p.abonado, 0))';
+        $saldoSql = 'SUM(a.monto_original + a.recargo_aplicado - a.pagado_previo - COALESCE(p.abonado, 0))';
 
         $filas = $this->query()
             ->selectRaw("al.matricula, al.nombre_completo, al.grupo, al.estatus, s.clave as sede, c.nombre as carrera,

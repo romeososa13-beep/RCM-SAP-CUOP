@@ -14,7 +14,8 @@ class RecargoService
      * último día sin recargo (fecha_vencimiento) ya pasó:
      *   - Colegiatura: monto fijo del plan del alumno ($180).
      *   - Inglés: config('cobranza.recargo_ingles_porcentaje')% de su costo.
-     * Los cargos de tipo OTRO (inscripción, trámites…) no llevan recargo.
+     * Los cargos de tipo OTRO (inscripción, trámites…) y los marcados como
+     * exento_recargo (p. ej. saldos migrados con su monto final) no llevan recargo.
      *
      * @return array{aplicados:int, monto:float, por_tipo:array<string,int>}
      */
@@ -30,6 +31,7 @@ class RecargoService
             ->whereIn('tipo', config('cobranza.tipos_con_recargo'))
             ->whereDate('fecha_vencimiento', '<', $fechaCorte->toDateString())
             ->where('recargo_aplicado', 0)
+            ->where('exento_recargo', false)
             ->with('alumno.planPago:id,monto_recargo')
             ->chunkById(500, function ($adeudos) use (&$aplicados, &$montoTotal, &$porTipo, $simular) {
                 DB::transaction(function () use ($adeudos, &$aplicados, &$montoTotal, &$porTipo, $simular) {

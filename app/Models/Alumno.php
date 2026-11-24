@@ -17,7 +17,7 @@ class Alumno extends Model
 
     protected $fillable = [
         'matricula', 'nombre_completo', 'sede_id', 'carrera_id',
-        'grupo', 'plan_pago_id', 'costo_ingles', 'estatus', 'comentarios',
+        'grupo', 'plan_pago_id', 'costo_ingles', 'celular', 'tel_tutor', 'tel_alterno', 'estatus', 'comentarios',
     ];
 
     protected $attributes = [
@@ -60,6 +60,19 @@ class Alumno extends Model
     public function scopeActivos(Builder $query): Builder
     {
         return $query->where('estatus', EstatusAlumno::ACTIVO);
+    }
+
+    /** Deja solo dígitos; "Sin teléfono" o textos sin número → null. */
+    public static function normalizarTelefono(mixed $valor): ?string
+    {
+        $digitos = preg_replace('/\D+/', '', (string) $valor);
+
+        return strlen($digitos) >= 7 ? substr($digitos, -15) : null;
+    }
+
+    public function getTelefonosAttribute(): array
+    {
+        return array_filter(['Celular' => $this->celular, 'Tutor' => $this->tel_tutor, 'Alterno' => $this->tel_alterno]);
     }
 
     /** Alumnos activos que hoy deben colegiatura o inglés con más de N días de vencido. */

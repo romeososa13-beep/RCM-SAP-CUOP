@@ -53,6 +53,18 @@ php artisan db:seed --class=CatalogosSeeder --force
 Luego entre como Administrador, cree los usuarios reales en **Usuarios** y cargue el padrón
 en **Padrón de alumnos › Importar Excel / CSV** (se lee la primera hoja del libro).
 
+### Migración de saldos del sistema anterior (una sola vez)
+
+```bash
+php artisan cobranza:migrar-saldos saldos.xlsx --simular   # valida y muestra el resumen
+php artisan cobranza:migrar-saldos saldos.xlsx             # migra
+```
+
+Layout: `MATRICULA, CONCEPTO, TIPO, VENCIMIENTO, MONTO, RECARGO, PAGADO_PREVIO, EXENTO_RECARGO`.
+Lo abonado antes queda en `pagado_previo` (no crea pagos ni folios ni entra al corte de caja).
+Un cargo ya pagado en el sistema anterior se registra como liquidado, para que el generador
+mensual no lo vuelva a cobrar. Es idempotente: volver a correrlo omite lo que ya existe.
+
 Usuarios de prueba creados por `--seed` (contraseña `password`): `admin@cuop.test` (Administrador),
 `caja@cuop.test` (Cajero), `escolar@cuop.test` (Control Escolar).
 
@@ -83,7 +95,7 @@ app/
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               29 pruebas (Cobranza, Administracion, PlanesPorSede, ReglasCobranza)
+tests/Feature/               33 pruebas (Cobranza, Administracion, PlanesPorSede, ReglasCobranza, MigracionSaldos)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
@@ -122,6 +134,7 @@ DB_CONNECTION=mysql DB_DATABASE=erp_cuop_test php artisan test  # contra MySQL
   cada plataforma lo aplica quien la administra.
 - Inglés: costo mensual por alumno (`costo_ingles`, columna `INGLES` del Excel); se genera
   junto con la colegiatura.
+- Teléfonos del alumno (celular, tutor, alterno): en el padrón, en caja y en el reporte de bloqueos.
 - El plan de pago es obligatorio solo para alumnos ACTIVOS; bajas y egresados pueden no tenerlo.
 - Usuarios: no se borran, se desactivan (pierden la sesión al instante). Un administrador
   no puede quitarse su propio rol ni desactivarse.
