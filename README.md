@@ -1,16 +1,29 @@
 # ERP CUOP · Control Escolar y Cobranza
 
-Laravel 11 · Livewire 3 · Alpine.js · Tailwind CSS 3 · MySQL 8 (InnoDB)
+Laravel 13 · Livewire 3 · Alpine.js · Tailwind CSS 3 · MySQL 8 (InnoDB)
 
-## Instalación (proyecto Laravel 11 recién instalado)
+## Requisitos
+
+PHP 8.3+ (extensiones `pdo_mysql`, `mbstring`, `gd`, `intl`, `zip`, `xml`), Composer 2,
+Node 20+ y MySQL 8.0+ con `utf8mb4_unicode_ci`.
+
+> El proyecto se inició en Laravel 11 y se actualizó a **Laravel 13** porque la rama 11.x
+> ya no recibe parches de seguridad (5 avisos abiertos en 11.57.1).
+
+## Instalación
 
 ```bash
-composer create-project laravel/laravel:^11.0 erp-cuop && cd erp-cuop
-composer require livewire/livewire:^3.5 maatwebsite/excel:^3.1 barryvdh/laravel-dompdf:^3.0 spatie/laravel-permission:^6.9
-php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+git clone https://github.com/romeososa13-beep/RCM-SAP-CUOP.git erp-cuop && cd erp-cuop
+composer install
+cp .env.example .env && php artisan key:generate
 ```
 
-Copie las carpetas de este repositorio encima del proyecto y configure `.env`:
+Cree la base de datos y configure `.env`:
+
+```sql
+CREATE DATABASE erp_cuop CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
 
 ```dotenv
 APP_TIMEZONE=America/Mexico_City
@@ -65,7 +78,8 @@ tests/Feature/CobranzaTest   9 pruebas de punta a punta
 ```bash
 php artisan cobranza:aplicar-recargos [--fecha=2026-11-23] [--simular]
 php artisan cobranza:generar-mensualidad [--mes=2026-12] [--simular]
-php artisan test
+php artisan test                                              # SQLite en memoria
+DB_CONNECTION=mysql DB_DATABASE=erp_cuop_test php artisan test  # contra MySQL
 ```
 
 ## Reglas de negocio implementadas
