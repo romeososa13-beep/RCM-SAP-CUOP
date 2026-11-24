@@ -17,7 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class ImportarAlumnosService
 {
     /** Campos que se actualizan cuando la matrícula ya existe. */
-    public const CAMPOS_ACTUALIZABLES = ['grupo', 'carrera_id', 'plan_pago_id', 'estatus'];
+    public const CAMPOS_ACTUALIZABLES = ['grupo', 'carrera_id', 'plan_pago_id', 'estatus', 'costo_ingles'];
 
     /**
      * Lee y valida el archivo SIN escribir en la base de datos.
@@ -59,6 +59,9 @@ class ImportarAlumnosService
                 'carrera_id' => $carreras[mb_strtoupper((string) ($f['carrera'] ?? ''))] ?? null,
                 'grupo' => mb_strtoupper((string) ($f['grupo'] ?? '')),
                 'plan_pago_id' => null, // se resuelve abajo según la sede/carrera del alumno
+                // INGLES (opcional): costo mensual; vacío = sin cambio; 0 = deja de cursar inglés.
+                'costo_ingles' => ! filled($f['ingles'] ?? null) ? null
+                    : (is_numeric($f['ingles']) ? number_format((float) $f['ingles'], 2, '.', '') : (string) $f['ingles']),
                 'estatus' => mb_strtoupper(str_replace(' ', '_', (string) ($f['estatus'] ?? ''))) ?: 'ACTIVO',
             ];
 
@@ -83,6 +86,7 @@ class ImportarAlumnosService
                     // Obligatorio si viene en el archivo (debe resolverse) o si el alumno quedará ACTIVO sin plan.
                     'plan_pago_id' => [Rule::requiredIf(filled($plan) || ($datos['estatus'] === 'ACTIVO' && ! $existe?->plan_pago_id))],
                     'estatus' => [Rule::in(EstatusAlumno::valores())],
+                    'costo_ingles' => ['nullable', 'numeric', 'min:0', 'max:99999.99'],
                 ],
                 [
                     'matricula.regex' => 'Matrícula con caracteres inválidos.',
@@ -90,6 +94,7 @@ class ImportarAlumnosService
                     'carrera_id.required' => 'Carrera no existe en el catálogo.',
                     'plan_pago_id.required' => $plan === '' ? 'Falta el plan de pago: es obligatorio para alumnos ACTIVOS.' : 'Plan de pago no existe en el catálogo.',
                     'estatus.in' => 'Estatus inválido (ACTIVO, BAJA_TEMPORAL, BAJA_DEFINITIVA, EGRESADO).',
+                    'costo_ingles.numeric' => 'INGLES debe ser un monto (ej. 350).',
                 ],
             );
 

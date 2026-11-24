@@ -40,12 +40,12 @@ class CobranzaTest extends TestCase
         $accion = app(RegistrarPagoAction::class);
 
         $p1 = $accion->execute($adeudo->id, '1000.50', FormaPago::EFECTIVO, $this->cajero());
-        $this->assertSame('02113', $p1->folio_pago);
+        $this->assertSame('02114', $p1->folio_pago);
         $this->assertFalse($adeudo->fresh()->pagado);
         $this->assertSame(849.50, $adeudo->fresh()->saldo_pendiente);
 
         $p2 = $accion->execute($adeudo->id, 849.50, FormaPago::TARJETA, $this->cajero(), 'aut 99');
-        $this->assertSame('02114', $p2->folio_pago);
+        $this->assertSame('02115', $p2->folio_pago);
         $this->assertSame('AUT 99', $p2->referencia);
         $this->assertTrue($adeudo->fresh()->pagado);
         $this->assertSame('1850.00', $adeudo->fresh()->monto_original); // nunca se sobrescribe
@@ -78,7 +78,7 @@ class CobranzaTest extends TestCase
         }
 
         $p = app(RegistrarPagoAction::class)->execute($adeudo->id, 10, FormaPago::EFECTIVO, $this->cajero());
-        $this->assertSame('02113', $p->folio_pago);
+        $this->assertSame('02114', $p->folio_pago);
     }
 
     public function test_cancelar_pago_reabre_adeudo_solo_admin(): void
@@ -110,7 +110,7 @@ class CobranzaTest extends TestCase
         $r = app(MensualidadService::class)->generar(Carbon::parse('2027-02-01'));
         $this->assertSame(4, $r['generados']); // 4 activos, la baja temporal se omite
         $this->assertFalse(Adeudo::where('matricula', 'CUOP26005')->where('concepto', 'MENSUALIDAD FEB 2027')->exists());
-        $this->assertSame('2027-02-11', Adeudo::where('concepto', 'MENSUALIDAD FEB 2027')->first()->fecha_vencimiento->toDateString());
+        $this->assertSame('2027-02-10', Adeudo::where('concepto', 'MENSUALIDAD FEB 2027')->first()->fecha_vencimiento->toDateString());
     }
 
     public function test_livewire_estado_cuenta_busca_cobra_y_abre_recibo(): void
@@ -145,12 +145,12 @@ class CobranzaTest extends TestCase
             ->call('cobrar')
             ->assertHasNoErrors()
             ->assertSet('modalCobro', false)
-            ->assertSet('ultimoFolio', '02113')
+            ->assertSet('ultimoFolio', '02114')
             ->assertDispatched('abrir-recibo');
 
         $this->assertTrue($adeudo->fresh()->pagado);
 
-        $this->get(route('caja.recibo', Pago::where('folio_pago', '02113')->first()))
+        $this->get(route('caja.recibo', Pago::where('folio_pago', '02114')->first()))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
     }

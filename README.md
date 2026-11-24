@@ -83,7 +83,7 @@ app/
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               23 pruebas (Cobranza, Administracion, PlanesPorSede)
+tests/Feature/               29 pruebas (Cobranza, Administracion, PlanesPorSede, ReglasCobranza)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
@@ -114,6 +114,14 @@ DB_CONNECTION=mysql DB_DATABASE=erp_cuop_test php artisan test  # contra MySQL
   Un alumno solo puede tener un plan de su sede/carrera; el formulario solo ofrece esos planes.
   En el Excel, `PLAN_PAGO` acepta el ID o el nombre: el nombre se busca solo dentro de la sede
   del alumno, así que dos sedes pueden tener un plan llamado igual con montos distintos.
+- **Calendario de pago** (`config/cobranza.php`):
+  del 1 al 10 colegiatura según plan; desde el 11 recargo ($180 fijo en colegiatura, 10% del
+  costo en inglés; los cargos «Otro» no llevan recargo); desde el 16 **bloqueo de plataformas**
+  para quien deba colegiatura o inglés (reporte «Bloqueos», exportable a Excel). El bloqueo
+  se libera al liquidar esos conceptos. El sistema indica a quién bloquear; el bloqueo en
+  cada plataforma lo aplica quien la administra.
+- Inglés: costo mensual por alumno (`costo_ingles`, columna `INGLES` del Excel); se genera
+  junto con la colegiatura.
 - El plan de pago es obligatorio solo para alumnos ACTIVOS; bajas y egresados pueden no tenerlo.
 - Usuarios: no se borran, se desactivan (pierden la sesión al instante). Un administrador
   no puede quitarse su propio rol ni desactivarse.

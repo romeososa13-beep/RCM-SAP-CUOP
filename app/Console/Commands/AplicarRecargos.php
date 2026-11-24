@@ -12,7 +12,7 @@ class AplicarRecargos extends Command
                             {--fecha= : Fecha de corte (Y-m-d). Por defecto hoy}
                             {--simular : Muestra lo que se aplicaría sin guardar}';
 
-    protected $description = 'Aplica el recargo del plan de pago a los adeudos vencidos sin recargo';
+    protected $description = 'Aplica recargo a colegiaturas ($ fijo del plan) e inglés (% de su costo) vencidos';
 
     public function handle(RecargoService $service): int
     {
@@ -21,9 +21,10 @@ class AplicarRecargos extends Command
         $r = $service->aplicar($fecha, (bool) $this->option('simular'));
 
         $this->info(sprintf(
-            '%sRecargos aplicados: %d | Monto total: $%s | Corte: %s',
+            '%sRecargos aplicados: %d (%s) | Monto total: $%s | Corte: %s',
             $this->option('simular') ? '[SIMULACIÓN] ' : '',
             $r['aplicados'],
+            collect($r['por_tipo'])->map(fn ($n, $t) => "{$t}: {$n}")->implode(', ') ?: 'ninguno',
             number_format($r['monto'], 2),
             $fecha->toDateString(),
         ));

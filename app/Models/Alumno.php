@@ -17,7 +17,7 @@ class Alumno extends Model
 
     protected $fillable = [
         'matricula', 'nombre_completo', 'sede_id', 'carrera_id',
-        'grupo', 'plan_pago_id', 'estatus', 'comentarios',
+        'grupo', 'plan_pago_id', 'costo_ingles', 'estatus', 'comentarios',
     ];
 
     protected $attributes = [
@@ -28,6 +28,7 @@ class Alumno extends Model
     {
         return [
             'estatus' => EstatusAlumno::class,
+            'costo_ingles' => 'decimal:2',
         ];
     }
 
@@ -59,6 +60,12 @@ class Alumno extends Model
     public function scopeActivos(Builder $query): Builder
     {
         return $query->where('estatus', EstatusAlumno::ACTIVO);
+    }
+
+    /** Alumnos activos que hoy deben colegiatura o inglés con más de N días de vencido. */
+    public function scopeConBloqueo(Builder $query, ?\Carbon\CarbonInterface $fecha = null): Builder
+    {
+        return $query->activos()->whereHas('adeudos', fn ($q) => $q->causanBloqueo($fecha));
     }
 
     /** Búsqueda por matrícula (prefijo) o nombre (contiene). */

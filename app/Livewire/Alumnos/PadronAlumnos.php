@@ -113,7 +113,7 @@ class PadronAlumnos extends Component
         $this->editando = null;
         $this->form = [
             'matricula' => '', 'nombre_completo' => '', 'sede_id' => $this->sedeId, 'carrera_id' => $this->carreraId,
-            'grupo' => $this->grupo, 'plan_pago_id' => null, 'estatus' => 'ACTIVO', 'comentarios' => '',
+            'grupo' => $this->grupo, 'plan_pago_id' => null, 'costo_ingles' => null, 'estatus' => 'ACTIVO', 'comentarios' => '',
         ];
         $this->resetValidation();
         $this->modalForm = true;
@@ -123,7 +123,7 @@ class PadronAlumnos extends Component
     {
         $a = Alumno::findOrFail($matricula);
         $this->editando = $a->matricula;
-        $this->form = $a->only(['matricula', 'nombre_completo', 'sede_id', 'carrera_id', 'grupo', 'plan_pago_id', 'comentarios'])
+        $this->form = $a->only(['matricula', 'nombre_completo', 'sede_id', 'carrera_id', 'grupo', 'plan_pago_id', 'costo_ingles', 'comentarios'])
             + ['estatus' => $a->estatus->value];
         $this->resetValidation();
         $this->modalForm = true;
@@ -135,6 +135,8 @@ class PadronAlumnos extends Component
         $this->form['nombre_completo'] = mb_strtoupper(trim((string) ($this->form['nombre_completo'] ?? '')));
         $this->form['grupo'] = mb_strtoupper(trim((string) ($this->form['grupo'] ?? '')));
         $this->form['plan_pago_id'] = filled($this->form['plan_pago_id'] ?? null) ? (int) $this->form['plan_pago_id'] : null;
+        $this->form['costo_ingles'] = filled($this->form['costo_ingles'] ?? null) && (float) $this->form['costo_ingles'] > 0
+            ? $this->form['costo_ingles'] : null;
 
         $datos = $this->validate([
             'form.matricula' => ['required', 'max:20', 'regex:/^[A-Z0-9\-]+$/',
@@ -149,13 +151,14 @@ class PadronAlumnos extends Component
                 filled($this->form['carrera_id'] ?? null) ? (int) $this->form['carrera_id'] : null,
             )],
             'form.estatus' => ['required', Rule::in(EstatusAlumno::valores())],
+            'form.costo_ingles' => 'nullable|numeric|min:0|max:99999.99',
             'form.comentarios' => 'nullable|max:2000',
         ], [
             'form.matricula.in' => 'La matrícula no se puede modificar.',
             'form.plan_pago_id.required' => 'Un alumno ACTIVO necesita plan de pago.',
         ], [
             'form.matricula' => 'matrícula', 'form.nombre_completo' => 'nombre',
-            'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.plan_pago_id' => 'plan de pago',
+            'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.plan_pago_id' => 'plan de pago', 'form.costo_ingles' => 'costo de inglés',
         ])['form'];
 
         Alumno::updateOrCreate(['matricula' => $datos['matricula']], $datos);

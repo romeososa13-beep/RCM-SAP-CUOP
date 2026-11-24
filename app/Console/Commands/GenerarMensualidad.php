@@ -12,7 +12,7 @@ class GenerarMensualidad extends Command
                             {--mes= : Mes a generar (Y-m). Por defecto el mes actual}
                             {--simular : Muestra lo que se generaría sin guardar}';
 
-    protected $description = 'Genera el cargo de colegiatura del mes para todos los alumnos ACTIVOS';
+    protected $description = 'Genera colegiatura (e inglés, si lo cursan) del mes para los alumnos ACTIVOS';
 
     public function handle(MensualidadService $service): int
     {
@@ -23,10 +23,11 @@ class GenerarMensualidad extends Command
         $r = $service->generar($mes, (bool) $this->option('simular'));
 
         $this->info(sprintf(
-            '%s%s → generados: %d | omitidos (ya existían / sin plan): %d',
+            '%s%s → colegiaturas: %d | inglés: %d | omitidos (ya existían / sin plan): %d',
             $this->option('simular') ? '[SIMULACIÓN] ' : '',
             $r['concepto'],
             $r['generados'],
+            $r['ingles'],
             $r['omitidos'],
         ));
 

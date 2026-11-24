@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TipoAdeudo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,18 +11,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Adeudo extends Model
 {
     protected $fillable = [
-        'matricula', 'concepto', 'fecha_vencimiento',
+        'matricula', 'concepto', 'tipo', 'fecha_vencimiento',
         'monto_original', 'recargo_aplicado', 'pagado', 'creado_por',
     ];
 
     protected $attributes = [
         'recargo_aplicado' => '0.00',
         'pagado' => false,
+        'tipo' => 'OTRO',
     ];
 
     protected function casts(): array
     {
         return [
+            'tipo' => TipoAdeudo::class,
             'fecha_vencimiento' => 'date',
             'monto_original' => 'decimal:2',
             'recargo_aplicado' => 'decimal:2',
@@ -68,6 +71,29 @@ class Adeudo extends Model
     public function getEstaVencidoAttribute(): bool
     {
         return ! $this->pagado && $this->fecha_vencimiento->lt(today());
+    }
+
+    /** Desde qué fecha este adeudo causa bloqueo de plataformas (null = nunca). */
+    public function getBloqueoDesdeAttribute(): ?\Illuminate\Support\Carbon
+    {
+        return in_array($this->tipo->value, config('cobranza.tipos_con_bloqueo'), true)
+            ? $this->fecha_vencimiento->copy()->addDays(config('cobranza.bloqueo_dias_despues_vencimiento'))
+            : null;
+    }
+
+    public function getCausaBloqueoAttribute(): bool
+    {
+        return ! $this->pagado && $this->bloqueo_desde !== null && $this->bloqueo_desde->lte(today());
+    }
+
+    /** Adeudos que hoy causan bloqueo de plataformas. */
+    public function scopeCausanBloqueo(Builder $query, ?\Carbon\CarbonInterface $fecha = null): Builder
+    {
+        $fecha ??= today();
+
+        return $query->where('pagado', false)
+            ->whereIn('tipo', config('cobranza.tipos_con_bloqueo'))
+            ->whereDate('fecha_vencimiento', '<=', $fecha->copy()->subDays(config('cobranza.bloqueo_dias_despues_vencimiento'))->toDateString());
     }
 
     public function scopePendientes(Builder $query): Builder

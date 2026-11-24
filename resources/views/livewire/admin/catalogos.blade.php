@@ -98,8 +98,8 @@
                         <div><label class="mb-1 block text-sm font-medium">Recargo $</label><input type="number" step="0.01" wire:model="form.monto_recargo" class="{{ $in }} text-right">
                             @error('form.monto_recargo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror</div>
                     </div>
-                    <div><label class="mb-1 block text-sm font-medium">Días de tolerancia</label><input type="number" wire:model="form.dias_tolerancia" class="{{ $in }}">
-                        <p class="mt-1 text-xs text-slate-400">La mensualidad vence el día 1 + estos días.</p>
+                    <div><label class="mb-1 block text-sm font-medium">Día límite de pago</label><input type="number" wire:model="form.dias_tolerancia" class="{{ $in }}">
+                        <p class="mt-1 text-xs text-slate-400">Último día del mes para pagar sin recargo (10 = del 1 al 10). Desde el día siguiente aplica el recargo.</p>
                         @error('form.dias_tolerancia') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror</div>
                 @endif
             </div>

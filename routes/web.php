@@ -8,6 +8,7 @@ use App\Livewire\Alumnos\PadronAlumnos;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\MiCuenta;
 use App\Livewire\Caja\EstadoCuenta;
+use App\Livewire\Reportes\BloqueoPlataformas;
 use App\Livewire\Reportes\CarteraVencida;
 use App\Livewire\Reportes\CorteCaja;
 use Illuminate\Http\Request;
@@ -55,6 +56,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios');
         Route::get('/admin/catalogos', Catalogos::class)->name('admin.catalogos');
     });
+
+    // Bloqueo de plataformas: lo consultan caja, control escolar y administración.
+    Route::get('/reportes/bloqueo-plataformas', BloqueoPlataformas::class)
+        ->middleware('role:Administrador|Cajero|Control Escolar')->name('reportes.bloqueo');
 
     Route::get('/mi-cuenta', MiCuenta::class)->name('mi-cuenta');
 });

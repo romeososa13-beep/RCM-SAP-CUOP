@@ -6,6 +6,7 @@ use App\Actions\Cobranza\CancelarPagoAction;
 use App\Actions\Cobranza\CrearCargoAction;
 use App\Actions\Cobranza\RegistrarPagoAction;
 use App\Enums\FormaPago;
+use App\Enums\TipoAdeudo;
 use App\Exceptions\CobranzaException;
 use App\Models\Adeudo;
 use App\Models\Alumno;
@@ -59,6 +60,7 @@ class EstadoCuenta extends Component
     public string $cargoConcepto = '';
     public string $cargoMonto = '';
     public string $cargoVencimiento = '';
+    public string $cargoTipo = 'OTRO';
 
     /** Último recibo emitido: respaldo si el navegador bloquea la pestaña emergente. */
     public ?string $ultimoReciboUrl = null;
@@ -128,6 +130,24 @@ class EstadoCuenta extends Component
             'saldo' => round($pendientes->sum('saldo_pendiente'), 2),
             'vencido' => round($pendientes->filter->esta_vencido->sum('saldo_pendiente'), 2),
             'conceptos' => $pendientes->count(),
+        ];
+    }
+
+    /** Bloqueo de plataformas: colegiatura o inglés con más de N días de vencido. */
+    #[Computed]
+    public function bloqueo(): ?array
+    {
+        if (! $this->matricula || $this->alumno?->estatus !== \App\Enums\EstatusAlumno::ACTIVO) {
+            return null;
+        }
+
+        $causas = Adeudo::query()->where('matricula', $this->matricula)->causanBloqueo()
+            ->with('pagos:id,adeudo_id,monto_pagado')->orderBy('fecha_vencimiento')->get();
+
+        return $causas->isEmpty() ? null : [
+            'desde' => $causas->first()->bloqueo_desde,
+            'conceptos' => $causas->pluck('concepto')->all(),
+            'monto' => round($causas->sum('saldo_pendiente'), 2),
         ];
     }
 
@@ -294,6 +314,7 @@ class EstadoCuenta extends Component
         $this->cargoConcepto = '';
         $this->cargoMonto = '';
         $this->cargoVencimiento = today()->toDateString();
+        $this->cargoTipo = TipoAdeudo::OTRO->value;
         $this->resetValidation();
         $this->modalCargo = true;
     }
@@ -304,12 +325,13 @@ class EstadoCuenta extends Component
             'cargoConcepto' => 'required|string|max:150',
             'cargoMonto' => ['required', 'numeric', 'min:0.01', 'max:999999.99', 'regex:/^\d+(\.\d{1,2})?$/'],
             'cargoVencimiento' => 'required|date',
+            'cargoTipo' => ['required', Rule::in(TipoAdeudo::valores())],
         ], ['cargoMonto.regex' => 'Capture el monto con máximo 2 decimales.'],
             ['cargoConcepto' => 'concepto', 'cargoMonto' => 'monto', 'cargoVencimiento' => 'vencimiento']);
 
         try {
             $adeudo = $crearCargo->execute($this->matricula, $this->cargoConcepto, $this->cargoMonto,
-                Carbon::parse($this->cargoVencimiento), auth()->user());
+                Carbon::parse($this->cargoVencimiento), auth()->user(), TipoAdeudo::from($this->cargoTipo));
         } catch (CobranzaException $e) {
             $this->addError('cargoConcepto', $e->getMessage());
 
@@ -386,7 +408,7 @@ class EstadoCuenta extends Component
 
     private function refrescar(): void
     {
-        unset($this->alumno, $this->adeudos, $this->totales, $this->pagos, $this->resultados);
+        unset($this->alumno, $this->adeudos, $this->totales, $this->pagos, $this->resultados, $this->bloqueo);
     }
 
     public function render()
@@ -394,6 +416,7 @@ class EstadoCuenta extends Component
         return view('livewire.caja.estado-cuenta', [
             'formasPago' => FormaPago::cases(),
             'conceptosSugeridos' => CrearCargoAction::CONCEPTOS_SUGERIDOS,
+            'tiposCargo' => TipoAdeudo::cases(),
         ]);
     }
 }

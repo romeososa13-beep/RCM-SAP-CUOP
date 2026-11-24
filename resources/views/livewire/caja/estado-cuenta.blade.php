@@ -126,7 +126,7 @@
                     <dd class="mt-0.5 font-semibold">{{ $alumno->planPago ? '$'.number_format($alumno->planPago->monto_mensualidad, 2) : '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Recargo en mensualidad</dt>
                     <dd class="mt-0.5 font-semibold">{{ $alumno->planPago ? '$'.number_format($alumno->planPago->monto_recargo, 2) : '—' }}</dd>
-                    @if ($alumno->planPago) <dd class="text-xs text-slate-500">Tolerancia {{ $alumno->planPago->dias_tolerancia }} días</dd> @endif</div>
+                    @if ($alumno->planPago) <dd class="text-xs text-slate-500">Sin recargo hasta el día {{ $alumno->planPago->dias_tolerancia }}</dd> @endif</div>
                 <div class="rounded-lg bg-slate-900 px-4 py-3 text-white">
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-300">Saldo total</dt>
                     <dd class="text-xl font-bold">${{ number_format($this->totales['saldo'], 2) }}</dd>
@@ -136,6 +136,20 @@
                 </div>
             </dl>
 
+            @if ($this->bloqueo)
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-red-300 bg-red-600 px-6 py-3 text-sm text-white">
+                    <span class="rounded bg-white px-2 py-0.5 text-xs font-bold tracking-wide text-red-700">BLOQUEO DE PLATAFORMAS</span>
+                    <span>Desde el {{ $this->bloqueo['desde']->format('d/m/Y') }} por adeudo de
+                        <strong>{{ implode(', ', $this->bloqueo['conceptos']) }}</strong>
+                        (${{ number_format($this->bloqueo['monto'], 2) }}). Se libera al liquidar esos conceptos.</span>
+                </div>
+            @endif
+            @if ($alumno->costo_ingles)
+                <div class="border-t border-slate-200 bg-sky-50 px-6 py-2 text-sm text-sky-900">
+                    Cursa inglés: <strong>${{ number_format($alumno->costo_ingles, 2) }}</strong> mensuales
+                    (recargo {{ rtrim(rtrim(number_format(config('cobranza.recargo_ingles_porcentaje'), 2), '0'), '.') }}% después del día de tolerancia).
+                </div>
+            @endif
             @if ($alumno->comentarios)
                 <div class="border-t border-amber-200 bg-amber-50 px-6 py-3 text-sm text-amber-900">
                     <span class="font-semibold">Nota administrativa:</span> {{ $alumno->comentarios }}
@@ -190,7 +204,13 @@
                         @forelse ($this->adeudos as $adeudo)
                             <tr wire:key="adeudo-{{ $adeudo->id }}" @class(['bg-slate-50 text-slate-400' => $adeudo->pagado, 'hover:bg-slate-50' => ! $adeudo->pagado])>
                                 <td class="px-4 py-3 font-mono">{{ $adeudo->id }}</td>
-                                <td class="px-4 py-3 font-medium">{{ $adeudo->concepto }}</td>
+                                <td class="px-4 py-3 font-medium">{{ $adeudo->concepto }}
+                                    <span @class(['ml-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+                                        'bg-slate-100 text-slate-600' => $adeudo->tipo === \App\Enums\TipoAdeudo::COLEGIATURA,
+                                        'bg-sky-100 text-sky-700' => $adeudo->tipo === \App\Enums\TipoAdeudo::INGLES,
+                                        'bg-violet-100 text-violet-700' => $adeudo->tipo === \App\Enums\TipoAdeudo::OTRO])>{{ $adeudo->tipo === \App\Enums\TipoAdeudo::OTRO ? 'Otro' : $adeudo->tipo->etiqueta() }}</span>
+                                    @if ($adeudo->causa_bloqueo) <span class="ml-1 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">BLOQUEO</span> @endif
+                                </td>
                                 <td class="px-4 py-3">
                                     <span @class(['rounded px-1.5 py-0.5 font-semibold text-red-700 bg-red-50' => $adeudo->esta_vencido])>
                                         {{ $adeudo->fecha_vencimiento->format('d/m/Y') }}
@@ -425,6 +445,13 @@
                         @foreach ($conceptosSugeridos as $c) <option value="{{ $c }}"> @endforeach
                     </datalist>
                     @error('cargoConcepto') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium">Tipo</label>
+                    <select wire:model="cargoTipo" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        @foreach ($tiposCargo as $t) <option value="{{ $t->value }}">{{ $t->etiqueta() }}</option> @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-slate-400">Colegiatura e inglés llevan recargo y bloqueo si se vencen; «Otro» no.</p>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>

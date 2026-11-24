@@ -2,6 +2,7 @@
 
 namespace App\Actions\Cobranza;
 
+use App\Enums\TipoAdeudo;
 use App\Exceptions\CobranzaException;
 use App\Models\Adeudo;
 use App\Models\Alumno;
@@ -17,7 +18,8 @@ class CrearCargoAction
         'EXAMEN A TÍTULO DE SUFICIENCIA', 'TITULACIÓN', 'CERTIFICADO DE ESTUDIOS',
     ];
 
-    public function execute(string $matricula, string $concepto, float|string $monto, CarbonInterface $vencimiento, User $usuario): Adeudo
+    public function execute(string $matricula, string $concepto, float|string $monto, CarbonInterface $vencimiento, User $usuario,
+        TipoAdeudo $tipo = TipoAdeudo::OTRO): Adeudo
     {
         $concepto = mb_strtoupper(trim(preg_replace('/\s+/', ' ', $concepto)));
         $centavos = RegistrarPagoAction::aCentavos($monto);
@@ -33,6 +35,7 @@ class CrearCargoAction
 
         return $alumno->adeudos()->create([
             'concepto' => $concepto,
+            'tipo' => $tipo,
             'fecha_vencimiento' => $vencimiento->toDateString(),
             'monto_original' => number_format($centavos / 100, 2, '.', ''),
             'creado_por' => $usuario->getKey(),

@@ -20,6 +20,8 @@
                     <a href="{{ route('reportes.corte-caja') }}" wire:navigate
                        @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.corte-caja*')])>Corte de caja</a>
                 @endhasanyrole
+                <a href="{{ route('reportes.bloqueo') }}" wire:navigate
+                   @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.bloqueo')])>Bloqueos</a>
                 @hasanyrole('Administrador|Control Escolar')
                     <a href="{{ route('alumnos.padron') }}" wire:navigate
                        @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('alumnos.*')])>Padrón de alumnos</a>

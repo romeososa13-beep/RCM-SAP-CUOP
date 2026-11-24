@@ -10,13 +10,13 @@ class PlantillaAlumnosExport implements FromArray, WithHeadings, ShouldAutoSize
 {
     public function headings(): array
     {
-        return ['MATRICULA', 'NOMBRE_COMPLETO', 'SEDE', 'CARRERA', 'GRUPO', 'PLAN_PAGO', 'ESTATUS'];
+        return ['MATRICULA', 'NOMBRE_COMPLETO', 'SEDE', 'CARRERA', 'GRUPO', 'PLAN_PAGO', 'ESTATUS', 'INGLES'];
     }
 
     public function array(): array
     {
         return [
-            ['CUOP-LOR02999', 'APELLIDO APELLIDO NOMBRE', 'CUOP-LOR', 'LICENCIATURA EN EDUCACIÓN', '27-1 LIC-EDUN-NESC-SAB-1A', 'PLAN 1370', 'ACTIVO'],
+            ['CUOP-LOR02999', 'APELLIDO APELLIDO NOMBRE', 'CUOP-LOR', 'LICENCIATURA EN EDUCACIÓN', '27-1 LIC-EDUN-NESC-SAB-1A', 'PLAN 1370', 'ACTIVO', '350'],
         ];
     }
 }

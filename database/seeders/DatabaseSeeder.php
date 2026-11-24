@@ -11,6 +11,7 @@ use App\Models\FolioConsecutivo;
 use App\Models\PlanPago;
 use App\Models\Sede;
 use App\Models\User;
+use App\Services\Cobranza\MensualidadService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -76,11 +77,21 @@ class DatabaseSeeder extends Seeder
                 $cargos[$alumno->matricula][$abr] = Adeudo::firstOrCreate(
                     ['matricula' => $alumno->matricula, 'concepto' => "MENSUALIDAD {$abr} 2026"],
                     [
-                        'fecha_vencimiento' => Carbon::parse($inicio)->addDays($alumno->planPago->dias_tolerancia),
+                        'tipo' => 'COLEGIATURA',
+                        'fecha_vencimiento' => MensualidadService::vencimiento(Carbon::parse($inicio), $alumno->planPago->dias_tolerancia),
                         'monto_original' => $alumno->planPago->monto_mensualidad,
                     ],
                 );
             }
+        }
+
+        // Inglés: Ana Sofía lo cursa ($350 al mes; recargo del 10%).
+        Alumno::whereKey('CUOP26001')->update(['costo_ingles' => 350]);
+        foreach (['OCT' => '2026-10-01', 'NOV' => '2026-11-01', 'DIC' => '2026-12-01'] as $abr => $inicio) {
+            $cargos['CUOP26001']["ING-{$abr}"] = Adeudo::firstOrCreate(
+                ['matricula' => 'CUOP26001', 'concepto' => "INGLÉS {$abr} 2026"],
+                ['tipo' => 'INGLES', 'fecha_vencimiento' => MensualidadService::vencimiento(Carbon::parse($inicio), 10), 'monto_original' => 350],
+            );
         }
 
         // Inscripción para un alumno de nuevo ingreso
@@ -110,6 +121,7 @@ class DatabaseSeeder extends Seeder
         $pagar('CUOP26001', 'SEP', 1850.00 + 185.00, FormaPago::EFECTIVO, '2026-09-20 10:14');
         $pagar('CUOP26001', 'OCT', 1850.00, FormaPago::TRANSFERENCIA, '2026-10-08 12:30', 'SPEI 8842917730');
         $pagar('CUOP26001', 'NOV', 1000.00, FormaPago::TARJETA, '2026-11-09 09:05', 'AUT 552190');
+        $pagar('CUOP26001', 'ING-OCT', 350.00, FormaPago::EFECTIVO, '2026-10-08 10:00');
 
         // 2) José Luis: SEP en dos exhibiciones; OCT vencido con recargo y un abono.
         $pagar('CUOP26002', 'SEP', 925.00, FormaPago::EFECTIVO, '2026-09-05 11:00');
