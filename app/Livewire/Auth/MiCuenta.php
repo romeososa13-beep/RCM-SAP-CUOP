@@ -13,7 +13,9 @@ use Livewire\Component;
 class MiCuenta extends Component
 {
     public string $actual = '';
+
     public string $nueva = '';
+
     public string $nueva_confirmation = '';
 
     public function cambiarPassword(): void

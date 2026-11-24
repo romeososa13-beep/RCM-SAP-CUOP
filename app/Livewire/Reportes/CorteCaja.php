@@ -15,9 +15,14 @@ use Livewire\Component;
 #[Title('Corte de caja')]
 class CorteCaja extends Component
 {
-    #[Url] public string $desde = '';
-    #[Url] public string $hasta = '';
-    #[Url] public ?string $cajeroId = null;
+    #[Url]
+    public string $desde = '';
+
+    #[Url]
+    public string $hasta = '';
+
+    #[Url]
+    public ?string $cajeroId = null;
 
     public function mount(): void
     {

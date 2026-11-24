@@ -83,6 +83,7 @@ class CatalogosSeeder extends Seeder
     ];
 
     public const RECARGO_POR_DEFECTO = 180;
+
     public const TOLERANCIA_POR_DEFECTO = 10;
 
     public function run(): void

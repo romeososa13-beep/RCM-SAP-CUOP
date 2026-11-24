@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\EstatusAlumno;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,9 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 class Alumno extends Model
 {
     protected $primaryKey = 'matricula';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -76,7 +79,7 @@ class Alumno extends Model
     }
 
     /** Alumnos activos que hoy deben colegiatura o inglés con más de N días de vencido. */
-    public function scopeConBloqueo(Builder $query, ?\Carbon\CarbonInterface $fecha = null): Builder
+    public function scopeConBloqueo(Builder $query, ?CarbonInterface $fecha = null): Builder
     {
         return $query->activos()->whereHas('adeudos', fn ($q) => $q->causanBloqueo($fecha));
     }

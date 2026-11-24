@@ -9,9 +9,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 /** El plan de pago debe pertenecer a la sede (y carrera, si aplica) del alumno. */
 class PlanCompatible implements ValidationRule
 {
-    public function __construct(private readonly ?int $sedeId, private readonly ?int $carreraId)
-    {
-    }
+    public function __construct(private readonly ?int $sedeId, private readonly ?int $carreraId) {}
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {

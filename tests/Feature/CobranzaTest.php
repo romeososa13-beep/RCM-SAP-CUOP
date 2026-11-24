@@ -13,9 +13,12 @@ use App\Models\Pago;
 use App\Models\User;
 use App\Services\Cobranza\MensualidadService;
 use App\Services\Padron\ImportarAlumnosService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
 
 class CobranzaTest extends TestCase
@@ -160,7 +163,7 @@ class CobranzaTest extends TestCase
         $this->actingAs($this->cajero());
         $ajeno = Adeudo::where('matricula', 'CUOP26003')->where('pagado', false)->first();
 
-        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class); // 404 en HTTP
+        $this->expectException(ModelNotFoundException::class); // 404 en HTTP
 
         Livewire::test(EstadoCuenta::class)
             ->call('seleccionarAlumno', 'CUOP26001')
@@ -194,13 +197,13 @@ class CobranzaTest extends TestCase
     public function test_importacion_lee_solo_la_primera_hoja_del_libro(): void
     {
         $ruta = tempnam(sys_get_temp_dir(), 'padron').'.xlsx';
-        $libro = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $libro = new Spreadsheet;
         $libro->getActiveSheet()->fromArray([
             ['MATRICULA', 'NOMBRE_COMPLETO', 'SEDE', 'CARRERA', 'GRUPO', 'PLAN_PAGO', 'ESTATUS'],
             ['CUOP-LOR09001', 'ALUMNO HOJA UNO', 'CUOP-LOR', 'LICENCIATURA EN EDUCACIÓN', '27-1 LIC-EDUN-NESC-SAB-1A', 'PLAN 1370', 'ACTIVO'],
         ]);
         $libro->createSheet()->fromArray([['MATRICULA', 'NOTAS'], ['CUOP-LOR09001', 'hoja de revisión']]);
-        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($libro))->save($ruta);
+        (new Xlsx($libro))->save($ruta);
 
         $a = app(ImportarAlumnosService::class)->analizar($ruta);
         @unlink($ruta);

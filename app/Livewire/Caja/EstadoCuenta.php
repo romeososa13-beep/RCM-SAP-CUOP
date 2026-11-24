@@ -5,6 +5,7 @@ namespace App\Livewire\Caja;
 use App\Actions\Cobranza\CancelarPagoAction;
 use App\Actions\Cobranza\CrearCargoAction;
 use App\Actions\Cobranza\RegistrarPagoAction;
+use App\Enums\EstatusAlumno;
 use App\Enums\FormaPago;
 use App\Enums\TipoAdeudo;
 use App\Exceptions\CobranzaException;
@@ -40,11 +41,14 @@ class EstadoCuenta extends Component
     public ?int $adeudoCobroId = null;
 
     public string $monto_pagar = '';
+
     public string $forma_pago = 'EFECTIVO';
+
     public string $referencia = '';
 
     /* ---------------- Modal de comentarios ---------------- */
     public bool $modalComentarios = false;
+
     public string $comentarios = '';
 
     /* ---------------- Modal de cancelación (Administrador) ---------------- */
@@ -57,13 +61,18 @@ class EstadoCuenta extends Component
 
     /* ---------------- Modal de cargo manual ---------------- */
     public bool $modalCargo = false;
+
     public string $cargoConcepto = '';
+
     public string $cargoMonto = '';
+
     public string $cargoVencimiento = '';
+
     public string $cargoTipo = 'OTRO';
 
     /** Último recibo emitido: respaldo si el navegador bloquea la pestaña emergente. */
     public ?string $ultimoReciboUrl = null;
+
     public ?string $ultimoFolio = null;
 
     public function mount(?string $matricula = null): void
@@ -137,7 +146,7 @@ class EstadoCuenta extends Component
     #[Computed]
     public function bloqueo(): ?array
     {
-        if (! $this->matricula || $this->alumno?->estatus !== \App\Enums\EstatusAlumno::ACTIVO) {
+        if (! $this->matricula || $this->alumno?->estatus !== EstatusAlumno::ACTIVO) {
             return null;
         }
 

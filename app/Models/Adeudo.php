@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Enums\TipoAdeudo;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Adeudo extends Model
 {
@@ -81,7 +83,7 @@ class Adeudo extends Model
     }
 
     /** Desde qué fecha este adeudo causa bloqueo de plataformas (null = nunca). */
-    public function getBloqueoDesdeAttribute(): ?\Illuminate\Support\Carbon
+    public function getBloqueoDesdeAttribute(): ?Carbon
     {
         return in_array($this->tipo->value, config('cobranza.tipos_con_bloqueo'), true)
             ? $this->fecha_vencimiento->copy()->addDays(config('cobranza.bloqueo_dias_despues_vencimiento'))
@@ -94,7 +96,7 @@ class Adeudo extends Model
     }
 
     /** Adeudos que hoy causan bloqueo de plataformas. */
-    public function scopeCausanBloqueo(Builder $query, ?\Carbon\CarbonInterface $fecha = null): Builder
+    public function scopeCausanBloqueo(Builder $query, ?CarbonInterface $fecha = null): Builder
     {
         $fecha ??= today();
 

@@ -16,8 +16,11 @@ use Maatwebsite\Excel\Facades\Excel;
 #[Title('Bloqueo de plataformas')]
 class BloqueoPlataformas extends Component
 {
-    #[Url] public ?string $sedeId = null;
-    #[Url] public ?string $carreraId = null;
+    #[Url]
+    public ?string $sedeId = null;
+
+    #[Url]
+    public ?string $carreraId = null;
 
     private function filtros(): array
     {

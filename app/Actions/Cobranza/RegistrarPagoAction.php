@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class RegistrarPagoAction
 {
-    public function __construct(private readonly FolioService $folios)
-    {
-    }
+    public function __construct(private readonly FolioService $folios) {}
 
     /**
      * Registra un pago (total o abono parcial) contra un adeudo.

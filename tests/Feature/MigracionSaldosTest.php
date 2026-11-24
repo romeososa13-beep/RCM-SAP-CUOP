@@ -8,11 +8,15 @@ use App\Models\Adeudo;
 use App\Models\Alumno;
 use App\Models\Pago;
 use App\Models\User;
+use App\Services\Cobranza\MensualidadService;
 use App\Services\Cobranza\RecargoService;
 use App\Services\Migracion\MigrarSaldosService;
 use App\Services\Padron\ImportarAlumnosService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
 
 class MigracionSaldosTest extends TestCase
@@ -21,7 +25,7 @@ class MigracionSaldosTest extends TestCase
 
     protected bool $seed = true;
 
-    private function fila(array $d): \Illuminate\Support\Collection
+    private function fila(array $d): Collection
     {
         return collect($d + ['tipo' => 'COLEGIATURA', 'recargo' => 0, 'pagado_previo' => 0, 'exento_recargo' => '']);
     }
@@ -84,7 +88,7 @@ class MigracionSaldosTest extends TestCase
         $s->migrar($s->analizar(collect([$this->fila(['matricula' => 'CUOP26003', 'concepto' => 'MENSUALIDAD ENE 2027',
             'vencimiento' => '2027-01-10', 'monto' => 2950, 'pagado_previo' => 2950])])));
 
-        app(\App\Services\Cobranza\MensualidadService::class)->generar(Carbon::parse('2027-01-01'));
+        app(MensualidadService::class)->generar(Carbon::parse('2027-01-01'));
 
         $this->assertSame(1, Adeudo::where('matricula', 'CUOP26003')->where('concepto', 'MENSUALIDAD ENE 2027')->count());
         $this->assertSame(0.0, Adeudo::where('matricula', 'CUOP26003')->where('concepto', 'MENSUALIDAD ENE 2027')->with('pagos')->first()->saldo_pendiente);
@@ -93,12 +97,12 @@ class MigracionSaldosTest extends TestCase
     public function test_comando_simular_no_guarda(): void
     {
         $ruta = tempnam(sys_get_temp_dir(), 'saldos').'.xlsx';
-        $libro = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $libro = new Spreadsheet;
         $libro->getActiveSheet()->fromArray([
             ['MATRICULA', 'CONCEPTO', 'TIPO', 'VENCIMIENTO', 'MONTO', 'RECARGO', 'PAGADO_PREVIO', 'EXENTO_RECARGO'],
             ['CUOP26002', 'TÍTULO 2026', 'OTRO', '2026-11-30', 8000, 0, 2000, 'NO'],
         ]);
-        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($libro))->save($ruta);
+        (new Xlsx($libro))->save($ruta);
 
         $this->artisan('cobranza:migrar-saldos', ['archivo' => $ruta, '--simular' => true])->assertSuccessful();
         $this->assertFalse(Adeudo::where('concepto', 'TÍTULO 2026')->exists());

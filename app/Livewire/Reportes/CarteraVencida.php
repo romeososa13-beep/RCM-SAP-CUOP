@@ -17,8 +17,11 @@ class CarteraVencida extends Component
 {
     use WithPagination;
 
-    #[Url] public ?string $sedeId = null;
-    #[Url] public ?string $carreraId = null;
+    #[Url]
+    public ?string $sedeId = null;
+
+    #[Url]
+    public ?string $carreraId = null;
 
     public function updating(): void
     {

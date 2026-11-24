@@ -22,7 +22,8 @@ class Usuarios extends Component
 
     public const ROLES = ['Administrador', 'Cajero', 'Control Escolar'];
 
-    #[Url] public string $buscar = '';
+    #[Url]
+    public string $buscar = '';
 
     public bool $modal = false;
 
@@ -30,9 +31,13 @@ class Usuarios extends Component
     public ?int $editandoId = null;
 
     public string $name = '';
+
     public string $email = '';
+
     public string $rol = 'Cajero';
+
     public string $password = '';
+
     public bool $activo = true;
 
     public function updatingBuscar(): void

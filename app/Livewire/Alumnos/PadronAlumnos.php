@@ -28,11 +28,20 @@ class PadronAlumnos extends Component
     use WithFileUploads, WithPagination;
 
     /* ---------- Filtros ---------- */
-    #[Url] public string $buscar = '';
-    #[Url] public ?string $sedeId = null;
-    #[Url] public ?string $carreraId = null;
-    #[Url] public string $grupo = '';
-    #[Url] public string $estatus = '';
+    #[Url]
+    public string $buscar = '';
+
+    #[Url]
+    public ?string $sedeId = null;
+
+    #[Url]
+    public ?string $carreraId = null;
+
+    #[Url]
+    public string $grupo = '';
+
+    #[Url]
+    public string $estatus = '';
 
     /* ---------- Modal alta / edición ---------- */
     public bool $modalForm = false;
@@ -44,7 +53,9 @@ class PadronAlumnos extends Component
 
     /* ---------- Importación ---------- */
     public bool $modalImportar = false;
+
     public $archivo = null;
+
     public ?array $preview = null;
 
     public function updating($prop): void
@@ -151,19 +162,19 @@ class PadronAlumnos extends Component
             'form.grupo' => 'required|max:80',
             'form.plan_pago_id' => ['nullable', Rule::requiredIf(($this->form['estatus'] ?? '') === EstatusAlumno::ACTIVO->value),
                 'exists:planes_pago,id', new PlanCompatible(
-                filled($this->form['sede_id'] ?? null) ? (int) $this->form['sede_id'] : null,
-                filled($this->form['carrera_id'] ?? null) ? (int) $this->form['carrera_id'] : null,
-            )],
+                    filled($this->form['sede_id'] ?? null) ? (int) $this->form['sede_id'] : null,
+                    filled($this->form['carrera_id'] ?? null) ? (int) $this->form['carrera_id'] : null,
+                )],
             'form.estatus' => ['required', Rule::in(EstatusAlumno::valores())],
             'form.costo_ingles' => 'nullable|numeric|min:0|max:99999.99',
             'form.celular' => 'nullable|max:20', 'form.tel_tutor' => 'nullable|max:20', 'form.tel_alterno' => 'nullable|max:20',
             'form.comentarios' => 'nullable|max:2000',
         ], [
-            'form.matricula.in' => 'La matrícula no se puede modificar.',
-            'form.plan_pago_id.required' => 'Un alumno ACTIVO necesita plan de pago.',
+                'form.matricula.in' => 'La matrícula no se puede modificar.',
+                'form.plan_pago_id.required' => 'Un alumno ACTIVO necesita plan de pago.',
         ], [
-            'form.matricula' => 'matrícula', 'form.nombre_completo' => 'nombre',
-            'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.plan_pago_id' => 'plan de pago', 'form.costo_ingles' => 'costo de inglés',
+                'form.matricula' => 'matrícula', 'form.nombre_completo' => 'nombre',
+                'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.plan_pago_id' => 'plan de pago', 'form.costo_ingles' => 'costo de inglés',
         ])['form'];
 
         Alumno::updateOrCreate(['matricula' => $datos['matricula']], $datos);
@@ -212,7 +223,7 @@ class PadronAlumnos extends Component
 
     public function descargarPlantilla()
     {
-        return Excel::download(new PlantillaAlumnosExport(), 'plantilla-padron-alumnos.xlsx');
+        return Excel::download(new PlantillaAlumnosExport, 'plantilla-padron-alumnos.xlsx');
     }
 
     public function render()

@@ -8,9 +8,7 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
 class CorteCajaExport implements FromView, ShouldAutoSize
 {
-    public function __construct(private readonly array $corte, private readonly string $cajero)
-    {
-    }
+    public function __construct(private readonly array $corte, private readonly string $cajero) {}
 
     public function view(): View
     {

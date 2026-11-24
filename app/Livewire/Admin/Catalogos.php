@@ -18,7 +18,8 @@ class Catalogos extends Component
 {
     private const MODELOS = ['sedes' => Sede::class, 'carreras' => Carrera::class, 'planes' => PlanPago::class];
 
-    #[Url] public string $tab = 'sedes';
+    #[Url]
+    public string $tab = 'sedes';
 
     public bool $modal = false;
 

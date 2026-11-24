@@ -5,11 +5,12 @@ namespace App\Services\Reportes;
 use App\Enums\FormaPago;
 use App\Models\Pago;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 
 class CorteCajaService
 {
     /**
-     * @return array{desde:CarbonInterface, hasta:CarbonInterface, totales:array<string,array{num:int,monto:float}>, total:float, num:int, pagos:\Illuminate\Support\Collection, cancelados:int}
+     * @return array{desde:CarbonInterface, hasta:CarbonInterface, totales:array<string,array{num:int,monto:float}>, total:float, num:int, pagos:Collection, cancelados:int}
      */
     public function generar(CarbonInterface $desde, CarbonInterface $hasta, ?int $cajeroId = null): array
     {

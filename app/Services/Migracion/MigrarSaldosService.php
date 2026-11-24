@@ -27,7 +27,7 @@ class MigrarSaldosService
 {
     public function analizarArchivo(string $ruta): array
     {
-        $import = new SaldosImport();
+        $import = new SaldosImport;
         Excel::import($import, $ruta);
 
         return $this->analizar($import->filas);

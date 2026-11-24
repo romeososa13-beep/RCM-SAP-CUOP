@@ -7,11 +7,9 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class BloqueoExport implements FromCollection, WithHeadings, ShouldAutoSize
+class BloqueoExport implements FromCollection, ShouldAutoSize, WithHeadings
 {
-    public function __construct(private readonly Collection $filas)
-    {
-    }
+    public function __construct(private readonly Collection $filas) {}
 
     public function headings(): array
     {

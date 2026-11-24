@@ -6,7 +6,7 @@ use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class PlantillaAlumnosExport implements FromArray, WithHeadings, ShouldAutoSize
+class PlantillaAlumnosExport implements FromArray, ShouldAutoSize, WithHeadings
 {
     public function headings(): array
     {

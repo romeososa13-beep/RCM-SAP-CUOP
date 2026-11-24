@@ -59,6 +59,7 @@ class MensualidadService
                 foreach ($alumnos as $alumno) {
                     if (! $alumno->planPago) {
                         $omitidos++;
+
                         continue;
                     }
 

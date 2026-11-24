@@ -21,6 +21,7 @@ class PlanesPorSedeTest extends TestCase
     protected bool $seed = true;
 
     private Sede $lor;
+
     private Sede $cal;
 
     protected function setUp(): void

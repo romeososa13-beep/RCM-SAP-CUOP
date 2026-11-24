@@ -26,7 +26,7 @@ class ImportarAlumnosService
      */
     public function analizar(string $rutaArchivo): array
     {
-        $import = new AlumnosImport();
+        $import = new AlumnosImport;
         Excel::import($import, $rutaArchivo);
 
         return $this->analizarFilas($import->filas);
@@ -122,11 +122,13 @@ class ImportarAlumnosService
 
             if ($mensajes) {
                 $resultado['errores'][] = ['fila' => $numFila, 'matricula' => $mat ?: '—', 'mensajes' => $mensajes];
+
                 continue;
             }
 
             if (! $existe) {
                 $resultado['crear'][] = $datos;
+
                 continue;
             }
 

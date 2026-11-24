@@ -8,6 +8,7 @@ use App\Models\Adeudo;
 use App\Models\Alumno;
 use App\Models\Carrera;
 use App\Models\FolioConsecutivo;
+use App\Models\Pago;
 use App\Models\PlanPago;
 use App\Models\Sede;
 use App\Models\User;
@@ -107,7 +108,7 @@ class DatabaseSeeder extends Seeder
         }
 
         /* ---------------- Pagos (totales y abonos parciales) ---------------- */
-        if (\App\Models\Pago::query()->exists()) {
+        if (Pago::query()->exists()) {
             return; // seeder re-ejecutado: no duplicar pagos
         }
 
