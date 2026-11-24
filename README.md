@@ -42,7 +42,15 @@ npm install && npm run build
 php artisan serve
 ```
 
-Usuarios de prueba (contraseña `password`): `admin@cuop.test` (Administrador),
+**En producción** no use `--seed` (crea alumnos y pagos de prueba). Cargue solo los catálogos
+reales (roles y sedes: Loreto, Ciénega, San José, Calvillo, Aguascalientes):
+
+```bash
+php artisan migrate --force
+php artisan db:seed --class=CatalogosSeeder --force
+```
+
+Usuarios de prueba creados por `--seed` (contraseña `password`): `admin@cuop.test` (Administrador),
 `caja@cuop.test` (Cajero), `escolar@cuop.test` (Control Escolar).
 
 Cron del servidor (ejecuta recargos diarios y mensualidades el día 1):

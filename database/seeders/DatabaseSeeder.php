@@ -14,27 +14,23 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        /* ---------------- Roles y usuarios ---------------- */
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        /* ---------------- Catálogos reales (roles y sedes) ---------------- */
+        $this->call(CatalogosSeeder::class);
 
-        foreach (['Administrador', 'Cajero', 'Control Escolar'] as $rol) {
-            Role::findOrCreate($rol, 'web');
-        }
+        /* ---------------- Usuarios de prueba ---------------- */
 
         $admin = $this->usuario('Administrador General', 'admin@cuop.test', 'Administrador');
         $cajera = $this->usuario('María Fernanda López (Caja)', 'caja@cuop.test', 'Cajero');
         $this->usuario('Jorge Ramírez (Control Escolar)', 'escolar@cuop.test', 'Control Escolar');
 
         /* ---------------- Catálogos ---------------- */
-        $lor = Sede::updateOrCreate(['clave' => 'CUOP-LOR'], ['nombre' => 'CUOP Plantel Loreto']);
-        $cen = Sede::updateOrCreate(['clave' => 'CUOP-CEN'], ['nombre' => 'CUOP Plantel Centro']);
+        $lor = Sede::where('clave', 'CUOP-LOR')->firstOrFail();
+        $ags = Sede::where('clave', 'CUOP-AGS')->firstOrFail();
 
         $eduNesc = Carrera::updateOrCreate(
             ['nombre' => 'EDUCACIÓN NO ESCOLARIZADO', 'modalidad' => 'NO ESCOLARIZADO'],
@@ -57,8 +53,8 @@ class DatabaseSeeder extends Seeder
         $alumnos = [
             ['CUOP26001', 'GARCÍA HERNÁNDEZ ANA SOFÍA', $lor, $eduNesc, '27-1 LIC-EDUN-NESC-SAB-6A', $planSabatino, 'ACTIVO', null],
             ['CUOP26002', 'MARTÍNEZ LÓPEZ JOSÉ LUIS', $lor, $eduNesc, '27-1 LIC-EDUN-NESC-SAB-6A', $planSabatino, 'ACTIVO', 'CONVENIO: PAGA EN DOS EXHIBICIONES POR MES.'],
-            ['CUOP26003', 'RODRÍGUEZ PÉREZ MARÍA GUADALUPE', $cen, $derEsc, '27-1 LIC-DER-ESC-MAT-3B', $planEscolar, 'ACTIVO', null],
-            ['CUOP26004', 'SÁNCHEZ CRUZ LUIS ÁNGEL', $cen, $derEsc, '27-1 LIC-DER-ESC-MAT-3B', $planEscolar, 'ACTIVO', null],
+            ['CUOP26003', 'RODRÍGUEZ PÉREZ MARÍA GUADALUPE', $ags, $derEsc, '27-1 LIC-DER-ESC-MAT-3B', $planEscolar, 'ACTIVO', null],
+            ['CUOP26004', 'SÁNCHEZ CRUZ LUIS ÁNGEL', $ags, $derEsc, '27-1 LIC-DER-ESC-MAT-3B', $planEscolar, 'ACTIVO', null],
             ['CUOP26005', 'TORRES RAMÍREZ DIANA LAURA', $lor, $eduNesc, '26-2 LIC-EDUN-NESC-SAB-4A', $planSabatino, 'BAJA_TEMPORAL', 'BAJA TEMPORAL POR MOTIVOS DE SALUD. REGRESA EN 2027-1.'],
         ];
 
