@@ -80,14 +80,15 @@ class ImportarAlumnosService
                     'sede_id' => [$req],
                     'carrera_id' => [Rule::requiredIf(! $existe || filled($f['carrera'] ?? null))],
                     'grupo' => [$req, 'max:80'],
-                    'plan_pago_id' => [Rule::requiredIf(! $existe || filled($plan))],
+                    // Obligatorio si viene en el archivo (debe resolverse) o si el alumno quedará ACTIVO sin plan.
+                    'plan_pago_id' => [Rule::requiredIf(filled($plan) || ($datos['estatus'] === 'ACTIVO' && ! $existe?->plan_pago_id))],
                     'estatus' => [Rule::in(EstatusAlumno::valores())],
                 ],
                 [
                     'matricula.regex' => 'Matrícula con caracteres inválidos.',
                     'sede_id.required' => 'Sede no existe en el catálogo (use la clave, ej. CUOP-LOR).',
                     'carrera_id.required' => 'Carrera no existe en el catálogo.',
-                    'plan_pago_id.required' => $plan === '' ? 'Falta el plan de pago (columna PLAN_PAGO).' : 'Plan de pago no existe en el catálogo.',
+                    'plan_pago_id.required' => $plan === '' ? 'Falta el plan de pago: es obligatorio para alumnos ACTIVOS.' : 'Plan de pago no existe en el catálogo.',
                     'estatus.in' => 'Estatus inválido (ACTIVO, BAJA_TEMPORAL, BAJA_DEFINITIVA, EGRESADO).',
                 ],
             );

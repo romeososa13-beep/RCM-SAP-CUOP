@@ -59,7 +59,7 @@
                             <td class="whitespace-nowrap px-4 py-2.5">{{ $a->sede->clave }}</td>
                             <td class="px-4 py-2.5">{{ $a->carrera->nombre }}</td>
                             <td class="px-4 py-2.5 font-mono text-xs">{{ $a->grupo }}</td>
-                            <td class="px-4 py-2.5 text-xs">#{{ $a->plan_pago_id }} {{ $a->planPago->nombre }}</td>
+                            <td class="px-4 py-2.5 text-xs">@if ($a->planPago) #{{ $a->plan_pago_id }} {{ $a->planPago->nombre }} @else <span class="text-amber-700">Sin plan</span> @endif</td>
                             <td class="whitespace-nowrap px-4 py-2.5"><span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $a->estatus->color() }}">{{ $a->estatus->etiqueta() }}</span></td>
                             <td class="whitespace-nowrap px-4 py-2.5 text-right">
                                 <button wire:click="editar('{{ $a->matricula }}')" class="text-sm font-medium text-emerald-700 hover:underline">Editar</button>
@@ -124,7 +124,7 @@
                     @error('form.grupo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="mb-1 block text-sm font-medium">Plan de pago</label>
+                    <label class="mb-1 block text-sm font-medium">Plan de pago <span class="font-normal text-slate-400">(obligatorio si está ACTIVO)</span></label>
                     <select wire:model="form.plan_pago_id" @disabled($this->planesFormulario->isEmpty()) class="{{ $in }}">
                         <option value="">{{ filled($form['sede_id'] ?? null) ? ($this->planesFormulario->isEmpty() ? 'La sede no tiene planes' : '—') : 'Elija primero la sede' }}</option>
                         @foreach ($this->planesFormulario as $p)

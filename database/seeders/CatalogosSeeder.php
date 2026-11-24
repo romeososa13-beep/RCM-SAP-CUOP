@@ -20,32 +20,65 @@ class CatalogosSeeder extends Seeder
     /** clave => nombre. Las claves se pueden cambiar después en Administración › Catálogos. */
     public const SEDES = [
         'CUOP-LOR' => 'LORETO',
-        'CUOP-CIE' => 'CIENEGA',
-        'CUOP-SJO' => 'SAN JOSE',
+        'CUOP-CIE' => 'CIÉNEGA',
+        'CUOP-SJG' => 'SAN JOSÉ DE GRACIA',   // clave tomada de sus matrículas (CUOP-SJG…)
         'CUOP-CAL' => 'CALVILLO',
         'CUOP-AGS' => 'AGUASCALIENTES',
     ];
 
     public const ROLES = ['Administrador', 'Cajero', 'Control Escolar'];
 
-    /** nombre => modalidad (fuente: tablero ejecutivo Loreto sep–dic 2026; grupos *-NESC-SAB). */
+    /**
+     * nombre => modalidad. Fuente: tablero ejecutivo de las 5 sedes, sep–dic 2026.
+     * Las 5 primeras son NO ESCOLARIZADO según los códigos de grupo de Loreto (*-NESC-SAB);
+     * las demás quedan POR CONFIRMAR hasta que Control Escolar indique su modalidad.
+     */
     public const CARRERAS = [
         'LICENCIATURA EN EDUCACIÓN' => 'NO ESCOLARIZADO',
         'LICENCIATURA EN DERECHO' => 'NO ESCOLARIZADO',
         'LICENCIATURA EN ADMINISTRACIÓN' => 'NO ESCOLARIZADO',
         'MAESTRÍA EN EDUCACIÓN E INNOVACIÓN' => 'NO ESCOLARIZADO',
         'MAESTRÍA EN MEDIACIÓN Y JUICIOS ORALES' => 'NO ESCOLARIZADO',
+        'BACHILLERATO' => 'POR CONFIRMAR',
+        'LICENCIATURA EN CRIMINOLOGÍA Y CRIMINALÍSTICA' => 'POR CONFIRMAR',
+        'LICENCIATURA EN LENGUA INGLESA' => 'POR CONFIRMAR',
+        'LICENCIATURA EN COMUNICACIÓN Y DISEÑO GRÁFICO' => 'POR CONFIRMAR',
+        'LICENCIATURA EN NEGOCIOS DIGITALES' => 'POR CONFIRMAR',
+        'INGENIERÍA INDUSTRIAL' => 'POR CONFIRMAR',
+        'INGENIERÍA EN SOFTWARE' => 'POR CONFIRMAR',
+        'INGENIERÍA EN INTELIGENCIA ARTIFICIAL Y CIENCIAS DE DATOS' => 'POR CONFIRMAR',
+        'MAESTRÍA EN ADMINISTRACIÓN ESTRATÉGICA DE HOSPITALES' => 'POR CONFIRMAR',
+        'MAESTRÍA EN CALIDAD Y PRODUCTIVIDAD' => 'POR CONFIRMAR',
     ];
 
     /**
      * Planes por sede: clave de sede => [nombre => mensualidad]. Mismos nombres que en INTELL
      * para que la importación del padrón los encuentre.
-     * PENDIENTE DE CONFIRMAR: recargo ($180 es el observado en el tablero) y días de tolerancia.
+     * Fuente: «Plan en INTELL» de cada alumno. Recargo $180: el observado en las 5 sedes.
+     * PENDIENTE DE CONFIRMAR: días de tolerancia.
      */
     public const PLANES = [
         'CUOP-LOR' => [
-            'PLAN 1050' => 1050, 'PLAN 1140' => 1140, 'PLAN 1163' => 1163, 'PLAN 1240' => 1240,
-            'PLAN 1370' => 1370, 'PLAN 1386' => 1386, 'PLAN 1530' => 1530,
+            'PLAN 1050' => 1050, 'PLAN 1140' => 1140, 'PLAN 1163' => 1163, 'PLAN 1240' => 1240, 'PLAN 1370' => 1370, 'PLAN 1386' => 1386,
+            'PLAN 1530' => 1530,
+        ],
+        'CUOP-CIE' => [
+            'PLAN 600' => 600, 'PLAN 800' => 800, 'PLAN 1000' => 1000, 'PLAN 1100' => 1100, 'PLAN 1245' => 1245, 'PLAN 1250' => 1250,
+        ],
+        'CUOP-SJG' => [
+            'PLAN 1050' => 1050, 'PLAN 1115' => 1115, 'PLAN 1280' => 1280, 'PLAN 1750' => 1750,
+        ],
+        'CUOP-CAL' => [
+            'PLAN 800' => 800, 'PLAN 855' => 855, 'PLAN 1000' => 1000, 'PLAN 1100' => 1100, 'PLAN 1116' => 1116, 'PLAN 1140' => 1140,
+            'PLAN 1220' => 1220, 'PLAN 1240' => 1240, 'PLAN 1254' => 1254, 'PLAN 1370' => 1370,
+        ],
+        'CUOP-AGS' => [
+            'PLAN 700' => 700, 'PLAN 750' => 750, 'PLAN 920' => 920, 'PLAN 945' => 945, 'PLAN 950' => 950, 'PLAN 1000' => 1000,
+            'PLAN 1021' => 1021, 'PLAN 1035' => 1035, 'PLAN 1040' => 1040, 'PLAN 1050' => 1050, 'PLAN 1116' => 1116, 'PLAN 1135' => 1135,
+            'PLAN 1138' => 1138, 'PLAN 1140' => 1140, 'PLAN 1150' => 1150, 'PLAN 1163' => 1163, 'PLAN 1220' => 1220, 'PLAN 1240' => 1240,
+            'PLAN 1245' => 1245, 'PLAN 1250' => 1250, 'PLAN 1260' => 1260, 'PLAN 1265' => 1265, 'PLAN 1370' => 1370, 'PLAN 1380' => 1380,
+            'PLAN 1385' => 1385, 'PLAN 1386' => 1386, 'PLAN 1390' => 1390, 'PLAN 1400' => 1400, 'PLAN 1530' => 1530, 'PLAN 1570' => 1570,
+            'PLAN 1657' => 1657, 'PLAN 1744' => 1744, 'PLAN 1750' => 1750, 'PLAN 2180' => 2180, 'PLAN 2530' => 2530,
         ],
     ];
 

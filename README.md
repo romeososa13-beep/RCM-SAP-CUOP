@@ -43,7 +43,7 @@ php artisan serve
 ```
 
 **En producción** no use `--seed` (crea alumnos y pagos de prueba). Cargue solo los catálogos
-reales (roles, las 5 sedes, las 5 carreras y los planes de Loreto):
+reales (roles, 5 sedes, 15 carreras y 62 planes de pago por sede, tomados de INTELL):
 
 ```bash
 php artisan migrate --force
@@ -83,7 +83,7 @@ app/
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               22 pruebas (Cobranza, Administracion, PlanesPorSede)
+tests/Feature/               23 pruebas (Cobranza, Administracion, PlanesPorSede)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
@@ -114,6 +114,7 @@ DB_CONNECTION=mysql DB_DATABASE=erp_cuop_test php artisan test  # contra MySQL
   Un alumno solo puede tener un plan de su sede/carrera; el formulario solo ofrece esos planes.
   En el Excel, `PLAN_PAGO` acepta el ID o el nombre: el nombre se busca solo dentro de la sede
   del alumno, así que dos sedes pueden tener un plan llamado igual con montos distintos.
+- El plan de pago es obligatorio solo para alumnos ACTIVOS; bajas y egresados pueden no tenerlo.
 - Usuarios: no se borran, se desactivan (pierden la sesión al instante). Un administrador
   no puede quitarse su propio rol ni desactivarse.
 - Importación: se re-analiza el archivo en el servidor al confirmar (no se confía en el preview).

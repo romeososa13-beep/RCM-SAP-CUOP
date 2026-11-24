@@ -161,7 +161,7 @@ class Catalogos extends Component
             'registros' => $query->orderBy($this->tab === 'sedes' ? 'clave' : 'nombre')->get(),
             'sedes' => $this->tab === 'planes' ? Sede::orderBy('clave')->get(['id', 'clave', 'nombre']) : collect(),
             'carreras' => $this->tab === 'planes' ? Carrera::orderBy('nombre')->get(['id', 'nombre', 'modalidad']) : collect(),
-            'modalidades' => ['ESCOLARIZADO', 'NO ESCOLARIZADO', 'MIXTO', 'EN LÍNEA'],
+            'modalidades' => ['ESCOLARIZADO', 'NO ESCOLARIZADO', 'MIXTO', 'EN LÍNEA', 'POR CONFIRMAR'],
         ]);
     }
 }

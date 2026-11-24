@@ -134,6 +134,7 @@ class PadronAlumnos extends Component
         $this->form['matricula'] = mb_strtoupper(trim((string) ($this->form['matricula'] ?? '')));
         $this->form['nombre_completo'] = mb_strtoupper(trim((string) ($this->form['nombre_completo'] ?? '')));
         $this->form['grupo'] = mb_strtoupper(trim((string) ($this->form['grupo'] ?? '')));
+        $this->form['plan_pago_id'] = filled($this->form['plan_pago_id'] ?? null) ? (int) $this->form['plan_pago_id'] : null;
 
         $datos = $this->validate([
             'form.matricula' => ['required', 'max:20', 'regex:/^[A-Z0-9\-]+$/',
@@ -142,7 +143,8 @@ class PadronAlumnos extends Component
             'form.sede_id' => 'required|exists:sedes,id',
             'form.carrera_id' => 'required|exists:carreras,id',
             'form.grupo' => 'required|max:80',
-            'form.plan_pago_id' => ['required', 'exists:planes_pago,id', new PlanCompatible(
+            'form.plan_pago_id' => ['nullable', Rule::requiredIf(($this->form['estatus'] ?? '') === EstatusAlumno::ACTIVO->value),
+                'exists:planes_pago,id', new PlanCompatible(
                 filled($this->form['sede_id'] ?? null) ? (int) $this->form['sede_id'] : null,
                 filled($this->form['carrera_id'] ?? null) ? (int) $this->form['carrera_id'] : null,
             )],
@@ -150,6 +152,7 @@ class PadronAlumnos extends Component
             'form.comentarios' => 'nullable|max:2000',
         ], [
             'form.matricula.in' => 'La matrícula no se puede modificar.',
+            'form.plan_pago_id.required' => 'Un alumno ACTIVO necesita plan de pago.',
         ], [
             'form.matricula' => 'matrícula', 'form.nombre_completo' => 'nombre',
             'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.plan_pago_id' => 'plan de pago',

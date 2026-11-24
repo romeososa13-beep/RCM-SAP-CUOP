@@ -116,13 +116,17 @@
                 <div class="col-span-2"><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Grupo</dt>
                     <dd class="mt-0.5 font-mono font-semibold">{{ $alumno->grupo }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Plan de pago ID</dt>
-                    <dd class="mt-0.5 font-semibold">#{{ $alumno->planPago->id }}</dd>
-                    <dd class="text-xs text-slate-500">{{ $alumno->planPago->nombre }}</dd></div>
+                    @if ($alumno->planPago)
+                        <dd class="mt-0.5 font-semibold">#{{ $alumno->planPago->id }}</dd>
+                        <dd class="text-xs text-slate-500">{{ $alumno->planPago->nombre }}</dd>
+                    @else
+                        <dd class="mt-0.5 font-semibold text-amber-700">Sin plan</dd>
+                    @endif</div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Monto mensualidad</dt>
-                    <dd class="mt-0.5 font-semibold">${{ number_format($alumno->planPago->monto_mensualidad, 2) }}</dd></div>
+                    <dd class="mt-0.5 font-semibold">{{ $alumno->planPago ? '$'.number_format($alumno->planPago->monto_mensualidad, 2) : '—' }}</dd></div>
                 <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Recargo en mensualidad</dt>
-                    <dd class="mt-0.5 font-semibold">${{ number_format($alumno->planPago->monto_recargo, 2) }}</dd>
-                    <dd class="text-xs text-slate-500">Tolerancia {{ $alumno->planPago->dias_tolerancia }} días</dd></div>
+                    <dd class="mt-0.5 font-semibold">{{ $alumno->planPago ? '$'.number_format($alumno->planPago->monto_recargo, 2) : '—' }}</dd>
+                    @if ($alumno->planPago) <dd class="text-xs text-slate-500">Tolerancia {{ $alumno->planPago->dias_tolerancia }} días</dd> @endif</div>
                 <div class="rounded-lg bg-slate-900 px-4 py-3 text-white">
                     <dt class="text-xs font-medium uppercase tracking-wide text-slate-300">Saldo total</dt>
                     <dd class="text-xl font-bold">${{ number_format($this->totales['saldo'], 2) }}</dd>
