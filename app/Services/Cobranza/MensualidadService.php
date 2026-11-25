@@ -32,7 +32,9 @@ class MensualidadService
 
     /**
      * Genera, SOLO para alumnos ACTIVOS, el cargo de colegiatura del mes según su plan
-     * y, si cursan inglés (costo_ingles), el cargo de inglés. Idempotente por concepto.
+     * y, si cursan inglés (costo_ingles), el cargo de inglés. Si el alumno tiene beca,
+     * el monto ya lleva el descuento (y se guarda cuánto en adeudos.descuento).
+     * Idempotente por concepto.
      *
      * @return array{generados:int, omitidos:int, concepto:string, ingles:int}
      */
@@ -70,14 +72,16 @@ class MensualidadService
                     if ($alumno->ya_generado) {
                         $omitidos++;
                     } else {
+                        [$monto, $descuento] = $alumno->aplicarBeca($alumno->planPago->monto_mensualidad);
                         $filas[] = $base + ['concepto' => $concepto, 'tipo' => TipoAdeudo::COLEGIATURA->value,
-                            'monto_original' => $alumno->planPago->monto_mensualidad];
+                            'monto_original' => $monto, 'descuento' => $descuento];
                         $generados++;
                     }
 
                     if ((float) $alumno->costo_ingles > 0 && ! $alumno->ingles_generado) {
+                        [$monto, $descuento] = $alumno->aplicarBeca($alumno->costo_ingles, esIngles: true);
                         $filas[] = $base + ['concepto' => $conceptoIngles, 'tipo' => TipoAdeudo::INGLES->value,
-                            'monto_original' => $alumno->costo_ingles];
+                            'monto_original' => $monto, 'descuento' => $descuento];
                         $ingles++;
                     }
                 }

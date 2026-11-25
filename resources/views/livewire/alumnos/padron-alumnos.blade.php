@@ -138,6 +138,23 @@
                     <input type="number" step="0.01" min="0" wire:model="form.costo_ingles" placeholder="350.00" class="{{ $in }} text-right">
                     @error('form.costo_ingles') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
+                @php($esAdmin = auth()->user()->hasRole('Administrador'))
+                <div class="grid grid-cols-1 gap-3 rounded-lg bg-sky-50 p-3 ring-1 ring-sky-100 md:col-span-2 md:grid-cols-3">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium">Beca % @unless ($esAdmin)<span class="font-normal text-slate-400">(solo Administración)</span>@endunless</label>
+                        <input type="number" step="0.01" min="0" max="100" wire:model="form.beca_porcentaje" @disabled(! $esAdmin) class="{{ $in }} text-right">
+                        @error('form.beca_porcentaje') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium">Motivo / tipo de beca</label>
+                        <input wire:model="form.beca_motivo" @disabled(! $esAdmin) maxlength="150" placeholder="Ej. BECA ACADÉMICA" class="{{ $in }}">
+                        @error('form.beca_motivo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    <label class="flex items-end gap-2 pb-2 text-sm">
+                        <input type="checkbox" wire:model="form.beca_ingles" @disabled(! $esAdmin) class="rounded"> También en inglés
+                    </label>
+                    <p class="text-xs text-sky-800 md:col-span-3">Se descuenta al generar cada mensualidad. No cambia cargos ya emitidos.</p>
+                </div>
                 <div class="grid grid-cols-3 gap-3 md:col-span-2">
                     @foreach (['celular' => 'Celular', 'tel_tutor' => 'Tel. tutor', 'tel_alterno' => 'Tel. alterno'] as $campo => $etiqueta)
                         <div>

@@ -141,6 +141,7 @@ class PadronAlumnos extends Component
         $this->form = [
             'matricula' => '', 'nombre_completo' => '', 'sede_id' => $this->sedeId, 'carrera_id' => $this->carreraId,
             'grupo' => $this->grupo, 'plan_pago_id' => null, 'costo_ingles' => null,
+            'beca_porcentaje' => '0', 'beca_ingles' => false, 'beca_motivo' => '',
             'celular' => '', 'tel_tutor' => '', 'tel_alterno' => '', 'estatus' => 'ACTIVO', 'comentarios' => '',
         ];
         $this->resetValidation();
@@ -151,7 +152,7 @@ class PadronAlumnos extends Component
     {
         $a = Alumno::findOrFail($matricula);
         $this->editando = $a->matricula;
-        $this->form = $a->only(['matricula', 'nombre_completo', 'sede_id', 'carrera_id', 'grupo', 'plan_pago_id', 'costo_ingles', 'celular', 'tel_tutor', 'tel_alterno', 'comentarios'])
+        $this->form = $a->only(['matricula', 'nombre_completo', 'sede_id', 'carrera_id', 'grupo', 'plan_pago_id', 'costo_ingles', 'beca_porcentaje', 'beca_ingles', 'beca_motivo', 'celular', 'tel_tutor', 'tel_alterno', 'comentarios'])
             + ['estatus' => $a->estatus->value];
         $this->resetValidation();
         $this->modalForm = true;
@@ -183,15 +184,28 @@ class PadronAlumnos extends Component
                 )],
             'form.estatus' => ['required', Rule::in(EstatusAlumno::valores())],
             'form.costo_ingles' => 'nullable|numeric|min:0|max:99999.99',
+            'form.beca_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'form.beca_ingles' => 'boolean',
+            'form.beca_motivo' => ['nullable', 'max:150', Rule::requiredIf(auth()->user()->hasRole('Administrador') && (float) ($this->form['beca_porcentaje'] ?? 0) > 0)],
             'form.celular' => 'nullable|max:20', 'form.tel_tutor' => 'nullable|max:20', 'form.tel_alterno' => 'nullable|max:20',
             'form.comentarios' => 'nullable|max:2000',
         ], [
             'form.matricula.in' => 'La matrícula no se puede modificar.',
             'form.plan_pago_id.required' => 'Un alumno ACTIVO necesita plan de pago.',
+            'form.beca_motivo.required' => 'Indique el motivo o tipo de beca.',
         ], [
             'form.matricula' => 'matrícula', 'form.nombre_completo' => 'nombre',
             'form.sede_id' => 'sede', 'form.carrera_id' => 'carrera', 'form.plan_pago_id' => 'plan de pago', 'form.costo_ingles' => 'costo de inglés',
         ])['form'];
+
+        // La beca es una decisión financiera: solo el Administrador la asigna o cambia.
+        if (! auth()->user()->hasRole('Administrador')) {
+            unset($datos['beca_porcentaje'], $datos['beca_ingles'], $datos['beca_motivo']);
+        } else {
+            $datos['beca_porcentaje'] = (float) ($datos['beca_porcentaje'] ?? 0);
+            $datos['beca_ingles'] = $datos['beca_porcentaje'] > 0 && (bool) ($datos['beca_ingles'] ?? false);
+            $datos['beca_motivo'] = $datos['beca_porcentaje'] > 0 ? (mb_strtoupper(trim((string) ($datos['beca_motivo'] ?? ''))) ?: null) : null;
+        }
 
         Alumno::updateOrCreate(['matricula' => $datos['matricula']], $datos);
 

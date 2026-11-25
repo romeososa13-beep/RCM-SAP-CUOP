@@ -3,6 +3,7 @@
 namespace App\Livewire\Caja;
 
 use App\Actions\Cobranza\CancelarPagoAction;
+use App\Actions\Cobranza\CondonarRecargoAction;
 use App\Actions\Cobranza\CrearCargoAction;
 use App\Actions\Cobranza\RegistrarPagoAction;
 use App\Enums\EstatusAlumno;
@@ -69,6 +70,14 @@ class EstadoCuenta extends Component
     public string $cargoVencimiento = '';
 
     public string $cargoTipo = 'OTRO';
+
+    /* ---------------- Modal condonar recargo (Administrador) ---------------- */
+    public bool $modalCondonar = false;
+
+    #[Locked]
+    public ?int $adeudoCondonarId = null;
+
+    public string $motivoCondonacion = '';
 
     /** Último recibo emitido: respaldo si el navegador bloquea la pestaña emergente. */
     public ?string $ultimoReciboUrl = null;
@@ -367,6 +376,39 @@ class EstadoCuenta extends Component
 
         $this->refrescar();
         $this->dispatch('toast', tipo: 'success', mensaje: 'Cargo eliminado.');
+    }
+
+    /* =====================================================================
+     |  Condonación de recargo (solo Administrador)
+     | ===================================================================== */
+
+    public function abrirModalCondonar(int $adeudoId): void
+    {
+        abort_unless(auth()->user()->hasRole('Administrador'), 403);
+        abort_unless(Adeudo::whereKey($adeudoId)->where('matricula', $this->matricula)->exists(), 404);
+
+        $this->adeudoCondonarId = $adeudoId;
+        $this->motivoCondonacion = '';
+        $this->resetValidation();
+        $this->modalCondonar = true;
+    }
+
+    public function condonarRecargo(CondonarRecargoAction $condonar): void
+    {
+        abort_unless(auth()->user()->hasRole('Administrador'), 403);
+        $this->validate(['motivoCondonacion' => 'required|string|min:5|max:150'], [], ['motivoCondonacion' => 'motivo']);
+
+        try {
+            $adeudo = $condonar->execute($this->adeudoCondonarId, auth()->user(), $this->motivoCondonacion);
+        } catch (CobranzaException $e) {
+            $this->addError('motivoCondonacion', $e->getMessage());
+
+            return;
+        }
+
+        $this->modalCondonar = false;
+        $this->refrescar();
+        $this->dispatch('toast', tipo: 'success', mensaje: "Recargo condonado en {$adeudo->concepto}.");
     }
 
     /* =====================================================================

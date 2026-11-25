@@ -30,12 +30,13 @@ class Adeudo extends Model
 
     protected $fillable = [
         'matricula', 'concepto', 'tipo', 'fecha_vencimiento',
-        'monto_original', 'recargo_aplicado', 'pagado_previo', 'exento_recargo', 'pagado', 'creado_por', 'origen',
+        'monto_original', 'descuento', 'recargo_aplicado', 'pagado_previo', 'exento_recargo', 'pagado', 'creado_por', 'origen',
     ];
 
     protected $attributes = [
         'recargo_aplicado' => '0.00',
         'pagado_previo' => '0.00',
+        'descuento' => '0.00',
         'exento_recargo' => false,
         'origen' => 'SISTEMA',
         'pagado' => false,
@@ -48,6 +49,7 @@ class Adeudo extends Model
             'tipo' => TipoAdeudo::class,
             'fecha_vencimiento' => 'date',
             'monto_original' => 'decimal:2',
+            'descuento' => 'decimal:2',
             'recargo_aplicado' => 'decimal:2',
             'pagado_previo' => 'decimal:2',
             'exento_recargo' => 'boolean',

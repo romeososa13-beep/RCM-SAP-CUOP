@@ -33,7 +33,7 @@ class Alumno extends Model
 
     protected $fillable = [
         'matricula', 'nombre_completo', 'sede_id', 'carrera_id',
-        'grupo', 'plan_pago_id', 'costo_ingles', 'celular', 'tel_tutor', 'tel_alterno', 'estatus', 'comentarios',
+        'grupo', 'plan_pago_id', 'costo_ingles', 'beca_porcentaje', 'beca_ingles', 'beca_motivo', 'celular', 'tel_tutor', 'tel_alterno', 'estatus', 'comentarios',
     ];
 
     protected $attributes = [
@@ -45,6 +45,8 @@ class Alumno extends Model
         return [
             'estatus' => EstatusAlumno::class,
             'costo_ingles' => 'decimal:2',
+            'beca_porcentaje' => 'decimal:2',
+            'beca_ingles' => 'boolean',
         ];
     }
 
@@ -76,6 +78,18 @@ class Alumno extends Model
     public function scopeActivos(Builder $query): Builder
     {
         return $query->where('estatus', EstatusAlumno::ACTIVO);
+    }
+
+    /** Aplica la beca del alumno a un monto. Devuelve [monto con descuento, descuento]. */
+    public function aplicarBeca(float|string $monto, bool $esIngles = false): array
+    {
+        $pct = (float) $this->beca_porcentaje;
+        if ($pct <= 0 || ($esIngles && ! $this->beca_ingles)) {
+            return [round((float) $monto, 2), 0.0];
+        }
+        $descuento = round((float) $monto * $pct / 100, 2);
+
+        return [round((float) $monto - $descuento, 2), $descuento];
     }
 
     /** Deja solo dígitos; "Sin teléfono" o textos sin número → null. */

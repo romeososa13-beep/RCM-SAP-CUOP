@@ -20,7 +20,7 @@ class BitacoraFormato
 
     public const ACCIONES = [
         'creado' => 'Alta', 'actualizado' => 'Cambio', 'eliminado' => 'Eliminado', 'cancelado' => 'Cancelado',
-        'rol' => 'Cambio de rol', 'proceso' => 'Ejecución',
+        'rol' => 'Cambio de rol', 'proceso' => 'Ejecución', 'condonado' => 'Recargo condonado',
     ];
 
     private const CAMPOS = [
@@ -35,6 +35,7 @@ class BitacoraFormato
         'clave' => 'Clave', 'modalidad' => 'Modalidad', 'monto_mensualidad' => 'Mensualidad', 'monto_recargo' => 'Recargo',
         'dias_tolerancia' => 'Día límite de pago', 'name' => 'Nombre', 'email' => 'Correo', 'password' => 'Contraseña',
         'activo' => 'Activo', 'rol' => 'Rol', 'por_tipo' => 'Por tipo',
+        'beca_porcentaje' => 'Beca %', 'beca_ingles' => 'Beca aplica a inglés', 'beca_motivo' => 'Motivo de beca', 'descuento' => 'Descuento (beca)',
     ];
 
     private array $cache = [];
@@ -68,7 +69,7 @@ class BitacoraFormato
             'carrera_id' => $this->nombre(Carrera::class, $v, fn ($c) => $c->nombre),
             'plan_pago_id' => $this->nombre(PlanPago::class, $v, fn ($p) => $p->nombre.' ($'.number_format($p->monto_mensualidad, 2).')'),
             'creado_por', 'user_id' => $this->nombre(User::class, $v, fn ($u) => $u->name),
-            'costo_ingles', 'monto_original', 'recargo_aplicado', 'pagado_previo', 'monto_pagado', 'monto_mensualidad', 'monto_recargo' => '$'.number_format((float) $v, 2),
+            'costo_ingles', 'descuento', 'monto_original', 'recargo_aplicado', 'pagado_previo', 'monto_pagado', 'monto_mensualidad', 'monto_recargo' => '$'.number_format((float) $v, 2),
             default => (string) $v,
         };
     }

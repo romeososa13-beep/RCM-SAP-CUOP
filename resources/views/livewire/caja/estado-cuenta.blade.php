@@ -148,6 +148,13 @@
                         (${{ number_format($this->bloqueo['monto'], 2) }}). Se libera al liquidar esos conceptos.</span>
                 </div>
             @endif
+            @if ((float) $alumno->beca_porcentaje > 0)
+                <div class="border-t border-slate-200 bg-sky-50 px-6 py-2 text-sm text-sky-900">
+                    Beca de <strong>{{ rtrim(rtrim(number_format($alumno->beca_porcentaje, 2), '0'), '.') }}%</strong>
+                    en colegiatura{{ $alumno->beca_ingles ? ' e inglés' : '' }}@if ($alumno->beca_motivo) · {{ $alumno->beca_motivo }}@endif.
+                    Se aplica al generar cada mensualidad.
+                </div>
+            @endif
             @if ($alumno->costo_ingles)
                 <div class="border-t border-slate-200 bg-sky-50 px-6 py-2 text-sm text-sky-900">
                     Cursa inglés: <strong>${{ number_format($alumno->costo_ingles, 2) }}</strong> mensuales
@@ -226,8 +233,19 @@
                                 </td>
                                 <td class="px-4 py-3 text-right tabular-nums">
                                     ${{ number_format($adeudo->monto_original, 2) }}
+                                    @if ((float) $adeudo->descuento > 0)
+                                        <span class="block text-xs text-sky-700" title="Monto sin beca: ${{ number_format($adeudo->monto_original + $adeudo->descuento, 2) }}">beca − ${{ number_format($adeudo->descuento, 2) }}</span>
+                                    @endif
                                     @if ((float) $adeudo->recargo_aplicado > 0)
-                                        <span class="block text-xs text-red-600">+ ${{ number_format($adeudo->recargo_aplicado, 2) }} recargo</span>
+                                        <span class="block text-xs text-red-600">+ ${{ number_format($adeudo->recargo_aplicado, 2) }} recargo
+                                            @role('Administrador')
+                                                @unless ($adeudo->pagado)
+                                                    <button wire:click="abrirModalCondonar({{ $adeudo->id }})" class="ml-1 font-medium text-sky-700 underline hover:text-sky-900">condonar</button>
+                                                @endunless
+                                            @endrole
+                                        </span>
+                                    @elseif ($adeudo->exento_recargo && $adeudo->esta_vencido)
+                                        <span class="block text-xs text-slate-400">exento de recargo</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right tabular-nums text-emerald-700">${{ number_format($adeudo->total_pagado, 2) }}
@@ -506,6 +524,29 @@
             </div>
         </form>
     </div>
+
+    @role('Administrador')
+        <div x-data="{ open: @entangle('modalCondonar') }" x-show="open" x-cloak x-on:keydown.escape.window="open = false"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div x-show="open" x-transition.opacity class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+            <form x-show="open" x-transition wire:submit="condonarRecargo" class="relative w-full max-w-md rounded-xl bg-white shadow-2xl">
+                <div class="rounded-t-xl border-b border-sky-200 bg-sky-50 px-6 py-4">
+                    <h3 class="text-lg font-bold text-sky-900">Condonar recargo</h3>
+                    <p class="text-sm text-sky-800">El recargo se quita y ya no se volverá a aplicar a este cargo. Queda en la bitácora.</p>
+                </div>
+                <div class="px-6 py-5">
+                    <label class="mb-1 block text-sm font-semibold">Motivo</label>
+                    <input type="text" wire:model="motivoCondonacion" maxlength="150" placeholder="Ej. convenio autorizado por dirección"
+                           class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    @error('motivoCondonacion') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50 px-6 py-4">
+                    <button type="button" x-on:click="open = false" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm">Volver</button>
+                    <button type="submit" class="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">Condonar</button>
+                </div>
+            </form>
+        </div>
+    @endrole
 
     {{-- =============================================================
          MODAL CANCELAR PAGO (Administrador)
