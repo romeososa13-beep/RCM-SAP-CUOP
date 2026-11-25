@@ -33,7 +33,7 @@ class Alumno extends Model
 
     protected $fillable = [
         'matricula', 'nombre_completo', 'sede_id', 'carrera_id',
-        'grupo', 'plan_pago_id', 'costo_ingles', 'beca_porcentaje', 'beca_ingles', 'beca_motivo', 'celular', 'tel_tutor', 'tel_alterno', 'estatus', 'comentarios',
+        'grupo', 'plan_pago_id', 'costo_ingles', 'beca_porcentaje', 'beca_ingles', 'beca_motivo', 'celular', 'tel_tutor', 'tel_alterno', 'email', 'estatus', 'comentarios',
     ];
 
     protected $attributes = [

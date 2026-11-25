@@ -20,7 +20,7 @@ class BitacoraFormato
 
     public const ACCIONES = [
         'creado' => 'Alta', 'actualizado' => 'Cambio', 'eliminado' => 'Eliminado', 'cancelado' => 'Cancelado',
-        'rol' => 'Cambio de rol', 'proceso' => 'Ejecución', 'condonado' => 'Recargo condonado',
+        'rol' => 'Cambio de rol', 'proceso' => 'Ejecución', 'condonado' => 'Recargo condonado', 'correo' => 'Correo enviado',
     ];
 
     private const CAMPOS = [

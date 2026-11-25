@@ -87,6 +87,7 @@
                     <div>
                         <h2 class="text-lg font-bold leading-tight text-slate-900">{{ $alumno->nombre_completo }}</h2>
                         <p class="font-mono text-sm text-slate-600">{{ $alumno->matricula }}
+                            @if ($alumno->email) <span class="ml-3 text-xs text-slate-500">✉ {{ $alumno->email }}</span> @endif
                             @foreach ($alumno->telefonos as $tipo => $tel)
                                 <a href="tel:{{ $tel }}" class="ml-3 text-xs text-slate-500 hover:text-emerald-700" title="{{ $tipo }}">☎ {{ $tipo }}: {{ $tel }}</a>
                             @endforeach
@@ -332,6 +333,10 @@
                                         <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                                         Recibo
                                     </a>
+                                    @if ($this->alumno->email && ! $pago->trashed())
+                                        <button wire:click="reenviarRecibo({{ $pago->id }})" title="Enviar recibo por correo a {{ $this->alumno->email }}"
+                                                class="ml-1 rounded-md border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">Correo</button>
+                                    @endif
                                     @role('Administrador')
                                         @unless ($pago->trashed())
                                             <button wire:click="abrirModalCancelar({{ $pago->id }})"
@@ -437,6 +442,16 @@
                         </div>
                     </div>
 
+                    <div class="border-t border-slate-100 px-6 py-3">
+                        @if ($this->alumno?->email)
+                            <label class="flex items-center gap-2 text-sm text-slate-600">
+                                <input type="checkbox" wire:model="enviarRecibo" class="rounded border-slate-300 text-emerald-600">
+                                Enviar recibo por correo a <span class="font-medium">{{ $this->alumno->email }}</span>
+                            </label>
+                        @else
+                            <p class="text-xs text-slate-400">El alumno no tiene correo registrado; el recibo solo se imprimirá.</p>
+                        @endif
+                    </div>
                     <div class="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50 px-6 py-4">
                         <button type="button" wire:click="cerrarModalCobro"
                                 class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancelar</button>

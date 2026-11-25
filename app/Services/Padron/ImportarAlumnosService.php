@@ -18,7 +18,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class ImportarAlumnosService
 {
     /** Campos que se actualizan cuando la matrícula ya existe. */
-    public const CAMPOS_ACTUALIZABLES = ['grupo', 'carrera_id', 'plan_pago_id', 'estatus', 'costo_ingles', 'celular', 'tel_tutor', 'tel_alterno'];
+    public const CAMPOS_ACTUALIZABLES = ['grupo', 'carrera_id', 'plan_pago_id', 'estatus', 'costo_ingles', 'celular', 'tel_tutor', 'tel_alterno', 'email'];
 
     /**
      * Lee y valida el archivo SIN escribir en la base de datos.
@@ -65,6 +65,7 @@ class ImportarAlumnosService
                 'celular' => Alumno::normalizarTelefono($f['celular'] ?? null),
                 'tel_tutor' => Alumno::normalizarTelefono($f['tel_tutor'] ?? null),
                 'tel_alterno' => Alumno::normalizarTelefono($f['tel_alterno'] ?? null),
+                'email' => filled($f['email'] ?? null) ? mb_strtolower(trim((string) $f['email'])) : null,
                 'costo_ingles' => ! filled($f['ingles'] ?? null) ? null
                     : (is_numeric($f['ingles']) ? number_format((float) $f['ingles'], 2, '.', '') : (string) $f['ingles']),
                 'estatus' => mb_strtoupper(str_replace(' ', '_', (string) ($f['estatus'] ?? ''))) ?: 'ACTIVO',
@@ -92,6 +93,7 @@ class ImportarAlumnosService
                     'plan_pago_id' => [Rule::requiredIf(filled($plan) || ($datos['estatus'] === 'ACTIVO' && ! $existe?->plan_pago_id))],
                     'estatus' => [Rule::in(EstatusAlumno::valores())],
                     'costo_ingles' => ['nullable', 'numeric', 'min:0', 'max:99999.99'],
+                    'email' => ['nullable', 'email', 'max:150'],
                 ],
                 [
                     'matricula.regex' => 'Matrícula con caracteres inválidos.',
@@ -100,6 +102,7 @@ class ImportarAlumnosService
                     'plan_pago_id.required' => $plan === '' ? 'Falta el plan de pago: es obligatorio para alumnos ACTIVOS.' : 'Plan de pago no existe en el catálogo.',
                     'estatus.in' => 'Estatus inválido (ACTIVO, BAJA_TEMPORAL, BAJA_DEFINITIVA, EGRESADO).',
                     'costo_ingles.numeric' => 'INGLES debe ser un monto (ej. 350).',
+                    'email.email' => 'EMAIL no es un correo válido.',
                 ],
             );
 

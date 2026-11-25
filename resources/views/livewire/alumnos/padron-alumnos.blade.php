@@ -164,6 +164,11 @@
                     @endforeach
                 </div>
                 <div class="md:col-span-2">
+                    <label class="mb-1 block text-sm font-medium">Correo electrónico <span class="font-normal text-slate-400">(para enviarle sus recibos)</span></label>
+                    <input type="email" wire:model="form.email" maxlength="150" class="{{ $in }} lowercase">
+                    @error('form.email') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="md:col-span-2">
                     <label class="mb-1 block text-sm font-medium">Comentarios</label>
                     <textarea wire:model="form.comentarios" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></textarea>
                 </div>
@@ -206,7 +211,7 @@
                 <label class="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 px-6 py-8 text-center hover:border-emerald-400 hover:bg-emerald-50/40">
                     <input type="file" wire:model="archivo" accept=".xlsx,.xls,.csv" class="sr-only">
                     <span class="text-sm font-medium text-slate-700">Seleccione un archivo .xlsx o .csv</span>
-                    <span class="text-xs text-slate-500">Columnas: MATRICULA, NOMBRE_COMPLETO, SEDE, CARRERA, GRUPO, PLAN_PAGO, ESTATUS · opcionales: INGLES, CELULAR, TEL_TUTOR, TEL_ALTERNO</span>
+                    <span class="text-xs text-slate-500">Columnas: MATRICULA, NOMBRE_COMPLETO, SEDE, CARRERA, GRUPO, PLAN_PAGO, ESTATUS · opcionales: INGLES, CELULAR, TEL_TUTOR, TEL_ALTERNO, EMAIL</span>
                     @if ($archivo) <span class="mt-2 font-mono text-xs text-emerald-700">{{ $archivo->getClientOriginalName() }}</span> @endif
                 </label>
                 <div wire:loading wire:target="archivo" class="text-sm text-slate-500">Analizando archivo…</div>

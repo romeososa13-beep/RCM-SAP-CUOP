@@ -10,11 +10,14 @@ use App\Enums\EstatusAlumno;
 use App\Enums\FormaPago;
 use App\Enums\TipoAdeudo;
 use App\Exceptions\CobranzaException;
+use App\Mail\ReciboPagoMail;
 use App\Models\Adeudo;
 use App\Models\Alumno;
+use App\Models\Bitacora;
 use App\Models\Pago;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -46,6 +49,8 @@ class EstadoCuenta extends Component
     public string $forma_pago = 'EFECTIVO';
 
     public string $referencia = '';
+
+    public bool $enviarRecibo = true;
 
     /* ---------------- Modal de comentarios ---------------- */
     public bool $modalComentarios = false;
@@ -268,6 +273,7 @@ class EstadoCuenta extends Component
         $this->monto_pagar = number_format($adeudo->saldo_pendiente, 2, '.', '');
         $this->forma_pago = FormaPago::EFECTIVO->value;
         $this->referencia = '';
+        $this->enviarRecibo = filled($this->alumno?->email);
         $this->resetValidation();
         unset($this->adeudoCobro);
         $this->modalCobro = true;
@@ -317,7 +323,8 @@ class EstadoCuenta extends Component
         $this->ultimoFolio = $pago->folio_pago;
         $this->ultimoReciboUrl = route('caja.recibo', $pago);
 
-        $this->dispatch('toast', tipo: 'success', mensaje: "Pago registrado. Folio {$pago->folio_pago}");
+        $enviado = $this->enviarRecibo && $this->mandarRecibo($pago);
+        $this->dispatch('toast', tipo: 'success', mensaje: "Pago registrado. Folio {$pago->folio_pago}".($enviado ? ' · recibo enviado por correo' : ''));
         $this->dispatch('abrir-recibo', url: $this->ultimoReciboUrl);
     }
 
@@ -376,6 +383,33 @@ class EstadoCuenta extends Component
 
         $this->refrescar();
         $this->dispatch('toast', tipo: 'success', mensaje: 'Cargo eliminado.');
+    }
+
+    /* =====================================================================
+     |  Recibo por correo
+     | ===================================================================== */
+
+    public function reenviarRecibo(int $pagoId): void
+    {
+        $pago = Pago::query()->whereKey($pagoId)
+            ->whereHas('adeudo', fn ($q) => $q->where('matricula', $this->matricula))->firstOrFail();
+
+        $this->mandarRecibo($pago)
+            ? $this->dispatch('toast', tipo: 'success', mensaje: "Recibo {$pago->folio_pago} enviado a {$this->alumno->email}.")
+            : $this->dispatch('toast', tipo: 'error', mensaje: 'El alumno no tiene correo registrado (agréguelo en el padrón).');
+    }
+
+    private function mandarRecibo(Pago $pago): bool
+    {
+        $correo = $this->alumno?->email;
+        if (blank($correo) || $pago->trashed()) {
+            return false;
+        }
+
+        Mail::to($correo)->queue(new ReciboPagoMail($pago));
+        Bitacora::registrar('correo', 'pago', $pago->id, "{$this->matricula} · Folio {$pago->folio_pago} · recibo enviado a {$correo}");
+
+        return true;
     }
 
     /* =====================================================================

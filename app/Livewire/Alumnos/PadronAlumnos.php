@@ -142,7 +142,7 @@ class PadronAlumnos extends Component
             'matricula' => '', 'nombre_completo' => '', 'sede_id' => $this->sedeId, 'carrera_id' => $this->carreraId,
             'grupo' => $this->grupo, 'plan_pago_id' => null, 'costo_ingles' => null,
             'beca_porcentaje' => '0', 'beca_ingles' => false, 'beca_motivo' => '',
-            'celular' => '', 'tel_tutor' => '', 'tel_alterno' => '', 'estatus' => 'ACTIVO', 'comentarios' => '',
+            'celular' => '', 'tel_tutor' => '', 'tel_alterno' => '', 'email' => '', 'estatus' => 'ACTIVO', 'comentarios' => '',
         ];
         $this->resetValidation();
         $this->modalForm = true;
@@ -152,7 +152,7 @@ class PadronAlumnos extends Component
     {
         $a = Alumno::findOrFail($matricula);
         $this->editando = $a->matricula;
-        $this->form = $a->only(['matricula', 'nombre_completo', 'sede_id', 'carrera_id', 'grupo', 'plan_pago_id', 'costo_ingles', 'beca_porcentaje', 'beca_ingles', 'beca_motivo', 'celular', 'tel_tutor', 'tel_alterno', 'comentarios'])
+        $this->form = $a->only(['matricula', 'nombre_completo', 'sede_id', 'carrera_id', 'grupo', 'plan_pago_id', 'costo_ingles', 'beca_porcentaje', 'beca_ingles', 'beca_motivo', 'celular', 'tel_tutor', 'tel_alterno', 'email', 'comentarios'])
             + ['estatus' => $a->estatus->value];
         $this->resetValidation();
         $this->modalForm = true;
@@ -164,6 +164,7 @@ class PadronAlumnos extends Component
         $this->form['nombre_completo'] = mb_strtoupper(trim((string) ($this->form['nombre_completo'] ?? '')));
         $this->form['grupo'] = mb_strtoupper(trim((string) ($this->form['grupo'] ?? '')));
         $this->form['plan_pago_id'] = filled($this->form['plan_pago_id'] ?? null) ? (int) $this->form['plan_pago_id'] : null;
+        $this->form['email'] = mb_strtolower(trim((string) ($this->form['email'] ?? ''))) ?: null;
         foreach (['celular', 'tel_tutor', 'tel_alterno'] as $tel) {
             $this->form[$tel] = Alumno::normalizarTelefono($this->form[$tel] ?? null);
         }
@@ -187,6 +188,7 @@ class PadronAlumnos extends Component
             'form.beca_porcentaje' => 'nullable|numeric|min:0|max:100',
             'form.beca_ingles' => 'boolean',
             'form.beca_motivo' => ['nullable', 'max:150', Rule::requiredIf(auth()->user()->hasRole('Administrador') && (float) ($this->form['beca_porcentaje'] ?? 0) > 0)],
+            'form.email' => 'nullable|email|max:150',
             'form.celular' => 'nullable|max:20', 'form.tel_tutor' => 'nullable|max:20', 'form.tel_alterno' => 'nullable|max:20',
             'form.comentarios' => 'nullable|max:2000',
         ], [
