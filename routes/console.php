@@ -18,3 +18,10 @@ Schedule::command('cobranza:aplicar-recargos')
     ->dailyAt('00:15')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Diario 9:00: recordatorio (día 8), aviso de recargo (día 11) o de bloqueo (día 16) por WhatsApp.
+// No envía nada mientras WHATSAPP_RECORDATORIOS=false.
+Schedule::command('whatsapp:recordatorios')
+    ->dailyAt('09:00')
+    ->withoutOverlapping()
+    ->onOneServer();

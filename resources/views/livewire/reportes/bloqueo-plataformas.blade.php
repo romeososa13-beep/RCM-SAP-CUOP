@@ -12,6 +12,11 @@
                 <p class="text-xs uppercase tracking-wide text-red-100">{{ $filas->count() }} alumnos a bloquear</p>
                 <p class="text-2xl font-bold tabular-nums">${{ number_format($total, 2) }}</p>
             </div>
+            @hasanyrole('Administrador|Cajero')
+                <button wire:click="avisarWhatsApp" wire:confirm="¿Enviar el aviso de bloqueo por WhatsApp a los {{ $filas->count() }} alumnos de la lista? (se omite a quien no tiene celular, pidió BAJA o ya lo recibió hoy)"
+                        @disabled($filas->isEmpty())
+                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50">Avisar por WhatsApp</button>
+            @endhasanyrole
             <button wire:click="exportar" class="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700">Exportar Excel</button>
         </div>
     </div>

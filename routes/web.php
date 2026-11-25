@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CorteCajaExportController;
 use App\Http\Controllers\ReciboPagoController;
+use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
 use App\Livewire\Admin\BitacoraCambios;
 use App\Livewire\Admin\Catalogos;
 use App\Livewire\Admin\Usuarios;
@@ -14,11 +15,16 @@ use App\Livewire\Reportes\CarteraVencida;
 use App\Livewire\Reportes\CorteCaja;
 use App\Livewire\Reportes\Ingresos;
 use App\Livewire\Reportes\Tablero;
+use App\Livewire\WhatsApp\Bandeja;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', Login::class)->middleware('guest')->name('login');
+
+// Webhook de WhatsApp (Meta). Público: se autentica con verify_token y la firma HMAC.
+Route::get('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'verificar'])->name('webhooks.whatsapp');
+Route::post('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'recibir'])->middleware('throttle:240,1');
 
 Route::post('/logout', function (Request $request) {
     Auth::logout();
@@ -43,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:Administrador|Cajero')->group(function () {
         Route::get('/caja/estado-cuenta/{matricula?}', EstadoCuenta::class)->name('caja.estado-cuenta');
         Route::get('/caja/recibos/{pago}', ReciboPagoController::class)->withTrashed()->name('caja.recibo');
+        Route::get('/whatsapp', Bandeja::class)->name('whatsapp');
     });
 
     // Módulo B: Control Escolar

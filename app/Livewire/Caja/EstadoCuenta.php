@@ -15,6 +15,9 @@ use App\Models\Adeudo;
 use App\Models\Alumno;
 use App\Models\Bitacora;
 use App\Models\Pago;
+use App\Models\WhatsappMensaje;
+use App\Services\WhatsApp\Mensajeria;
+use App\Services\WhatsApp\Plantillas;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
@@ -51,6 +54,13 @@ class EstadoCuenta extends Component
     public string $referencia = '';
 
     public bool $enviarRecibo = true;
+
+    public bool $enviarWhatsApp = false;
+
+    /* ---------------- Modal WhatsApp ---------------- */
+    public bool $modalWhatsApp = false;
+
+    public string $plantillaWa = 'recordatorio_pago';
 
     /* ---------------- Modal de comentarios ---------------- */
     public bool $modalComentarios = false;
@@ -274,6 +284,7 @@ class EstadoCuenta extends Component
         $this->forma_pago = FormaPago::EFECTIVO->value;
         $this->referencia = '';
         $this->enviarRecibo = filled($this->alumno?->email);
+        $this->enviarWhatsApp = false;
         $this->resetValidation();
         unset($this->adeudoCobro);
         $this->modalCobro = true;
@@ -324,6 +335,9 @@ class EstadoCuenta extends Component
         $this->ultimoReciboUrl = route('caja.recibo', $pago);
 
         $enviado = $this->enviarRecibo && $this->mandarRecibo($pago);
+        if ($this->enviarWhatsApp) {
+            app(Mensajeria::class)->plantilla($this->alumno, 'pago_recibido', auth()->user(), $pago, unaVezAlDia: false);
+        }
         $this->dispatch('toast', tipo: 'success', mensaje: "Pago registrado. Folio {$pago->folio_pago}".($enviado ? ' · recibo enviado por correo' : ''));
         $this->dispatch('abrir-recibo', url: $this->ultimoReciboUrl);
     }
@@ -410,6 +424,50 @@ class EstadoCuenta extends Component
         Bitacora::registrar('correo', 'pago', $pago->id, "{$this->matricula} · Folio {$pago->folio_pago} · recibo enviado a {$correo}");
 
         return true;
+    }
+
+    /* =====================================================================
+     |  WhatsApp
+     | ===================================================================== */
+
+    public function abrirModalWhatsApp(): void
+    {
+        $this->plantillaWa = Alumno::conBloqueo()->whereKey($this->matricula)->exists() ? 'aviso_bloqueo' : 'recordatorio_pago';
+        $this->modalWhatsApp = true;
+    }
+
+    #[Computed]
+    public function vistaPreviaWa(): ?string
+    {
+        if (! $this->alumno || ! isset(Plantillas::TEXTOS[$this->plantillaWa]) || $this->plantillaWa === 'pago_recibido') {
+            return null;
+        }
+        $v = Plantillas::variables($this->plantillaWa, $this->alumno);
+
+        return $v ? Plantillas::vistaPrevia($this->plantillaWa, $v) : null;
+    }
+
+    #[Computed]
+    public function mensajesWa()
+    {
+        return $this->matricula
+            ? WhatsappMensaje::where('matricula', $this->matricula)->latest('id')->limit(8)->get()
+            : collect();
+    }
+
+    public function enviarWa(Mensajeria $mensajeria): void
+    {
+        abort_if($this->plantillaWa === 'pago_recibido', 422);
+        [$m, $motivo] = $mensajeria->plantilla($this->alumno, $this->plantillaWa, auth()->user());
+
+        if (! $m) {
+            $this->dispatch('toast', tipo: 'error', mensaje: "No se envió: {$motivo}");
+
+            return;
+        }
+        $this->modalWhatsApp = false;
+        unset($this->mensajesWa);
+        $this->dispatch('toast', tipo: 'success', mensaje: 'Mensaje de WhatsApp en cola.');
     }
 
     /* =====================================================================
@@ -502,6 +560,7 @@ class EstadoCuenta extends Component
             'formasPago' => FormaPago::cases(),
             'conceptosSugeridos' => CrearCargoAction::CONCEPTOS_SUGERIDOS,
             'tiposCargo' => TipoAdeudo::cases(),
+            'plantillasWa' => array_diff_key(Plantillas::ETIQUETAS, ['pago_recibido' => true]),
         ]);
     }
 }

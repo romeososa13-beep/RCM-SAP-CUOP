@@ -11,29 +11,36 @@
 <body class="h-full font-sans text-slate-800 antialiased">
     @auth
     <nav class="bg-slate-900 text-slate-100 shadow">
-        <div class="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
+        <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
             <a href="{{ route('home') }}" class="text-lg font-bold tracking-tight">ERP<span class="text-emerald-400">·</span>CUOP</a>
             <div class="flex flex-1 flex-wrap items-center gap-0.5 text-sm">
                 @role('Administrador')
                     <a href="{{ route('tablero') }}" wire:navigate
-                       @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('tablero')])>Tablero</a>
+                       @class(['rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('tablero')])>Tablero</a>
                 @endrole
                 @hasanyrole('Administrador|Cajero')
                     <a href="{{ route('caja.estado-cuenta') }}" wire:navigate
-                       @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('caja.*')])>Caja</a>
+                       @class(['rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('caja.*')])>Caja</a>
                     <a href="{{ route('reportes.corte-caja') }}" wire:navigate
-                       @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.corte-caja*')])>Corte de caja</a>
+                       @class(['rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.corte-caja*')])>Corte</a>
+                @endhasanyrole
+                @hasanyrole('Administrador|Cajero')
+                    @php($waPendientes = \App\Models\WhatsappMensaje::where('requiere_atencion', true)->where('direccion', 'entrante')->distinct('telefono')->count('telefono'))
+                    <a href="{{ route('whatsapp') }}" wire:navigate
+                       @class(['flex items-center gap-1 rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('whatsapp')])>
+                        WhatsApp @if ($waPendientes) <span class="rounded-full bg-amber-500 px-1.5 text-xs font-bold">{{ $waPendientes }}</span> @endif
+                    </a>
                 @endhasanyrole
                 <a href="{{ route('reportes.bloqueo') }}" wire:navigate
-                   @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.bloqueo')])>Bloqueos</a>
+                   @class(['rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.bloqueo')])>Bloqueos</a>
                 @hasanyrole('Administrador|Control Escolar')
                     <a href="{{ route('alumnos.padron') }}" wire:navigate
-                       @class(['rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('alumnos.*')])>Padrón de alumnos</a>
+                       @class(['rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('alumnos.*')])>Padrón</a>
                 @endhasanyrole
                 @role('Administrador')
                     <div class="relative" x-data="{ abierto: false }" x-on:click.outside="abierto = false" x-on:keydown.escape="abierto = false">
                         <button type="button" x-on:click="abierto = ! abierto" :aria-expanded="abierto"
-                                @class(['flex items-center gap-1 rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.ingresos', 'reportes.cartera-vencida')])>
+                                @class(['flex items-center gap-1 rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.ingresos', 'reportes.cartera-vencida')])>
                             Reportes
                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                         </button>
@@ -45,7 +52,7 @@
                     </div>
                     <div class="relative" x-data="{ abierto: false }" x-on:click.outside="abierto = false" x-on:keydown.escape="abierto = false">
                         <button type="button" x-on:click="abierto = ! abierto" :aria-expanded="abierto"
-                                @class(['flex items-center gap-1 rounded px-3 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('admin.*')])>
+                                @class(['flex items-center gap-1 rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('admin.*')])>
                             Administración
                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                         </button>

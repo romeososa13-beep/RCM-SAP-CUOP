@@ -98,6 +98,13 @@
                     </span>
                 </div>
                 <div class="flex gap-2">
+                    @if ($alumno->celular || $alumno->tel_tutor)
+                        <button wire:click="abrirModalWhatsApp"
+                                class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-100">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2.1 1-2.4c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.4 1.8 2.2 1.2 1.1 2.3 1.4 2.6 1.6.3.1.5.1.7-.1l.9-1.1c.2-.3.4-.2.7-.1l2 .9c.3.1.5.2.6.3.1.2.1.8-.1 1.4z"/></svg>
+                            WhatsApp
+                        </button>
+                    @endif
                     <button wire:click="abrirModalComentarios"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.83L3 20l1.4-3.7A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -443,6 +450,12 @@
                     </div>
 
                     <div class="border-t border-slate-100 px-6 py-3">
+                        @if (($this->alumno?->celular || $this->alumno?->tel_tutor) && ! $this->alumno?->whatsapp_baja_at)
+                            <label class="mb-1 flex items-center gap-2 text-sm text-slate-600">
+                                <input type="checkbox" wire:model="enviarWhatsApp" class="rounded border-slate-300 text-emerald-600">
+                                Enviar confirmación por WhatsApp
+                            </label>
+                        @endif
                         @if ($this->alumno?->email)
                             <label class="flex items-center gap-2 text-sm text-slate-600">
                                 <input type="checkbox" wire:model="enviarRecibo" class="rounded border-slate-300 text-emerald-600">
@@ -513,6 +526,52 @@
                 <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Agregar cargo</button>
             </div>
         </form>
+    </div>
+
+    {{-- =============================================================
+         MODAL WHATSAPP
+       ============================================================= --}}
+    <div x-data="{ open: @entangle('modalWhatsApp') }" x-show="open" x-cloak x-on:keydown.escape.window="open = false"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div x-show="open" x-transition.opacity class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+        <div x-show="open" x-transition class="relative w-full max-w-lg rounded-xl bg-white shadow-2xl">
+            <div class="border-b border-slate-200 px-6 py-4">
+                <h3 class="text-lg font-bold">Enviar WhatsApp</h3>
+                <p class="text-sm text-slate-500">Se envía como plantilla aprobada por Meta al
+                    {{ $this->alumno?->celular ? 'celular '.$this->alumno->celular : 'tel. de tutor '.$this->alumno?->tel_tutor }}.</p>
+            </div>
+            <div class="space-y-4 px-6 py-5">
+                @if ($this->alumno?->whatsapp_baja_at)
+                    <p class="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">El alumno pidió no recibir mensajes (respondió BAJA el {{ $this->alumno->whatsapp_baja_at->format('d/m/Y') }}).</p>
+                @endif
+                <select wire:model.live="plantillaWa" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    @foreach ($plantillasWa as $k => $etiqueta) <option value="{{ $k }}">{{ $etiqueta }}</option> @endforeach
+                </select>
+                @if ($this->vistaPreviaWa)
+                    <div class="rounded-lg bg-emerald-50 p-3 text-sm text-slate-800 ring-1 ring-emerald-100">{{ $this->vistaPreviaWa }}</div>
+                @else
+                    <p class="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500">Este aviso no aplica: el alumno no tiene adeudos para él.</p>
+                @endif
+                @if ($this->mensajesWa->isNotEmpty())
+                    <div>
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Últimos mensajes</p>
+                        <ul class="max-h-32 space-y-1 overflow-y-auto text-xs">
+                            @foreach ($this->mensajesWa as $wm)
+                                <li wire:key="wm-{{ $wm->id }}" class="flex justify-between gap-2">
+                                    <span class="truncate">{{ $wm->direccion === 'entrante' ? '⬅' : '➡' }} {{ $wm->cuerpo }}</span>
+                                    <span class="shrink-0 text-slate-400">{{ $wm->created_at->format('d/m H:i') }} · {{ $wm->estado }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+            </div>
+            <div class="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button type="button" x-on:click="open = false" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm">Cerrar</button>
+                <button wire:click="enviarWa" @disabled(! $this->vistaPreviaWa || $this->alumno?->whatsapp_baja_at)
+                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">Enviar</button>
+            </div>
+        </div>
     </div>
 
     {{-- =============================================================
