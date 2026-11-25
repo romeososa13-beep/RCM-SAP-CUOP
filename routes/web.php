@@ -12,6 +12,7 @@ use App\Livewire\Caja\EstadoCuenta;
 use App\Livewire\Reportes\BloqueoPlataformas;
 use App\Livewire\Reportes\CarteraVencida;
 use App\Livewire\Reportes\CorteCaja;
+use App\Livewire\Reportes\Ingresos;
 use App\Livewire\Reportes\Tablero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -57,6 +58,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::middleware('role:Administrador')->group(function () {
         Route::get('/tablero', Tablero::class)->name('tablero');
+        Route::get('/reportes/ingresos', Ingresos::class)->name('reportes.ingresos');
         Route::get('/reportes/cartera-vencida', CarteraVencida::class)->name('reportes.cartera-vencida');
 
         // Administración
