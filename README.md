@@ -2,6 +2,9 @@
 
 Laravel 13 · Livewire 3 · Alpine.js · Tailwind CSS 3 · MySQL 8 (InnoDB)
 
+> **Producción:** siga [`docs/INSTALACION.md`](docs/INSTALACION.md) (VPS o cPanel, HTTPS, cola,
+> cron, respaldos, correo y WhatsApp).
+
 ## Requisitos
 
 PHP 8.3+ (extensiones `pdo_mysql`, `mbstring`, `gd`, `intl`, `zip`, `xml`), Composer 2,
@@ -89,13 +92,15 @@ app/
 ├── Livewire/Caja/           EstadoCuenta
 ├── Livewire/Alumnos/        PadronAlumnos
 ├── Livewire/Reportes/       Tablero (inicio del Administrador), CorteCaja, CarteraVencida, BloqueoPlataformas
+├── Livewire/WhatsApp/       Bandeja (conversaciones; responde el personal)
+├── Services/WhatsApp/       Cloud API de Meta, plantillas, chatbot, webhook
 ├── Livewire/Admin/          Usuarios (alta, rol, contraseña, desactivar), Catalogos (sedes, carreras, planes), BitacoraCambios
 ├── Livewire/Auth/           Login, MiCuenta (cambio de contraseña)
 └── Models/                  Sede, Carrera, PlanPago, Alumno, Adeudo, Pago, FolioConsecutivo
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               44 pruebas (Cobranza, Administracion, PlanesPorSede, ReglasCobranza, MigracionSaldos, Tablero, Bitacora)
+tests/Feature/               67 pruebas (cobranza, administración, planes, reglas, migración, tablero, bitácora, becas, ingresos, correo, WhatsApp)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
@@ -145,6 +150,13 @@ formato con Pint, `composer audit` y la suite completa contra **MySQL 8** y **SQ
   (antes → después) en alumnos, cargos, cancelaciones de pagos, catálogos, usuarios y roles,
   más un resumen de cada importación, migración, recargos y mensualidades automáticas.
   Es de solo escritura y nunca guarda contraseñas. Cada alumno muestra su historial en el padrón.
+- **Becas:** porcentaje por alumno (solo Administrador) que se descuenta al generar la colegiatura
+  y, si se indica, el inglés. **Condonar recargo:** solo Administrador, con motivo; queda en bitácora.
+- **Reporte de ingresos:** cobrado en caja por concepto, forma de pago, sede y día; Excel.
+- **Recibo por correo:** al cobrar o desde el historial, con el PDF adjunto (en segundo plano).
+- **WhatsApp Business:** avisos con plantillas (recordatorio día 8, recargo día 11, bloqueo día 16,
+  confirmación de pago), aviso masivo desde Bloqueos, bandeja de conversaciones y chatbot por
+  reglas (saldo, fechas, cómo pagar, pase a una persona). Respeta BAJA/ALTA. Ver docs/INSTALACION.md §9.
 - Usuarios: no se borran, se desactivan (pierden la sesión al instante). Un administrador
   no puede quitarse su propio rol ni desactivarse.
 - Importación: se re-analiza el archivo en el servidor al confirmar (no se confía en el preview).
