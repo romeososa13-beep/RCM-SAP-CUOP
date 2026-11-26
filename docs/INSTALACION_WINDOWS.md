@@ -101,5 +101,8 @@ alumnos fuera de horario se reciben al prender (si pasa demasiado tiempo pueden 
 - «Docker Desktop no está abierto»: ábrelo y espera *Engine running*.
 - La página no abre: en Docker Desktop › Containers › `erp-cuop` revisa que `app`, `db` y `respaldo` estén en verde;
   en `app` › *Logs* aparece el error.
+- No puedes entrar después del primer arranque, o cambiaste las contraseñas del `.env` después:
+  si **aún no cargas datos**, ejecuta `windows\reiniciar-desde-cero.bat` (borra la base y la crea con
+  los datos actuales del `.env`) y luego `iniciar.bat`. Revisa que el `.env` esté guardado (sin punto en la pestaña).
 - Olvidaste tu contraseña: pídele a otro administrador que la cambie en **Usuarios**, o vuelve a ejecutar
   `iniciar.bat` después de borrar los datos (solo si aún no cargaste información).

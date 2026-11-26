@@ -10,13 +10,21 @@ if errorlevel 1 (
   exit /b 1
 )
 
-if not exist ".env" (
-  copy "docker\.env.ejemplo" ".env" >nul
+if not exist ".env" copy "docker\.env.ejemplo" ".env" >nul
+rem No arrancar hasta que el .env tenga datos propios (el Bloc de notas de Windows 11 no espera a que se cierre).
+:revisar_env
+findstr /c:"CAMBIAR_" /c:"tu_correo@" ".env" >nul
+if not errorlevel 1 (
   echo.
-  echo  Se creo el archivo de configuracion .env
-  echo  Cambia las contrasenas y tu correo, GUARDA y CIERRA el Bloc de notas para continuar.
+  echo  Falta configurar el archivo .env (todavia tiene datos de ejemplo).
+  echo  1. En el Bloc de notas cambia las contrasenas DB_PASSWORD, DB_ROOT_PASSWORD y ADMIN_PASSWORD,
+  echo     y tu correo en ADMIN_EMAIL.
+  echo  2. GUARDA con Ctrl+S ^(el punto junto al nombre de la pestana debe desaparecer^).
+  echo  3. Regresa a esta ventana y presiona una tecla.
   echo.
-  notepad ".env"
+  start "" notepad ".env"
+  pause
+  goto revisar_env
 )
 if not exist "respaldos" mkdir respaldos
 if not exist "importar" mkdir importar
