@@ -5,6 +5,7 @@ namespace App\Actions\Cobranza;
 use App\Enums\FormaPago;
 use App\Exceptions\CobranzaException;
 use App\Models\Adeudo;
+use App\Models\CorteCaja;
 use App\Models\Pago;
 use App\Models\User;
 use App\Services\Cobranza\FolioService;
@@ -37,6 +38,10 @@ class RegistrarPagoAction
 
         if ($formaPago->requiereReferencia() && $referencia === null) {
             throw new CobranzaException("La forma de pago {$formaPago->etiqueta()} requiere número de referencia.");
+        }
+
+        if (CorteCaja::cerrado($cajero->id, $fechaPago ?? today())) {
+            throw new CobranzaException('Tu corte de caja de ese día ya está cerrado. Pide a Administración que lo reabra para cobrar.');
         }
 
         return DB::transaction(function () use ($adeudoId, $montoCentavos, $formaPago, $cajero, $referencia, $fechaPago) {

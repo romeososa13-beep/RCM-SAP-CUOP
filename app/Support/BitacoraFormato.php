@@ -15,12 +15,12 @@ class BitacoraFormato
 {
     public const ENTIDADES = [
         'alumno' => 'Alumno', 'adeudo' => 'Cargo', 'pago' => 'Pago', 'plan_pago' => 'Plan de pago',
-        'sede' => 'Sede', 'carrera' => 'Carrera', 'usuario' => 'Usuario', 'proceso' => 'Proceso automático',
+        'sede' => 'Sede', 'carrera' => 'Carrera', 'usuario' => 'Usuario', 'proceso' => 'Proceso automático', 'corte_caja' => 'Corte de caja',
     ];
 
     public const ACCIONES = [
         'creado' => 'Alta', 'actualizado' => 'Cambio', 'eliminado' => 'Eliminado', 'cancelado' => 'Cancelado',
-        'rol' => 'Cambio de rol', 'proceso' => 'Ejecución', 'condonado' => 'Recargo condonado', 'correo' => 'Correo enviado',
+        'rol' => 'Cambio de rol', 'proceso' => 'Ejecución', 'condonado' => 'Recargo condonado', 'cierre' => 'Cierre de corte', 'reapertura' => 'Reapertura de corte', 'correo' => 'Correo enviado',
     ];
 
     private const CAMPOS = [

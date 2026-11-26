@@ -4,6 +4,7 @@ namespace App\Actions\Cobranza;
 
 use App\Exceptions\CobranzaException;
 use App\Models\Adeudo;
+use App\Models\CorteCaja;
 use App\Models\Pago;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,10 @@ class CancelarPagoAction
 
             if (! $pago) {
                 throw new CobranzaException('El pago no existe o ya fue cancelado.');
+            }
+
+            if (CorteCaja::cerrado($pago->user_id, $pago->fecha_pago)) {
+                throw new CobranzaException("El pago {$pago->folio_pago} pertenece a un corte de caja cerrado. Reabra primero el corte de ese día.");
             }
 
             $adeudo = Adeudo::query()->whereKey($pago->adeudo_id)->lockForUpdate()->firstOrFail();

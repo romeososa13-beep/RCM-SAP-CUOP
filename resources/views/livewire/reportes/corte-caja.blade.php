@@ -10,6 +10,37 @@
         </div>
     </div>
 
+    {{-- Estado del corte del día --}}
+    @if ($puedeCerrar)
+        @php($ec = $this->estadoCorte)
+        <div @class(['flex flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-4 shadow-sm ring-1',
+            'bg-slate-900 text-white ring-slate-900' => $ec?->esta_cerrado,
+            'bg-white ring-slate-200' => ! $ec?->esta_cerrado])>
+            <div class="text-sm">
+                @if ($ec?->esta_cerrado)
+                    <p class="font-semibold">🔒 Corte cerrado el {{ $ec->cerrado_at->format('d/m/Y H:i') }} por {{ $ec->cerradoPor->name }}</p>
+                    <p class="text-slate-300">{{ $ec->num_pagos }} pagos por ${{ number_format($ec->total, 2) }}. Ese día ya no se puede cobrar ni cancelar pagos de este cajero.</p>
+                @else
+                    <p class="font-semibold">Corte abierto</p>
+                    <p class="text-slate-500">
+                        @if ($ec?->reabierto_at) Reabierto el {{ $ec->reabierto_at->format('d/m/Y H:i') }} por {{ $ec->reabiertoPor?->name }} · {{ $ec->motivo_reapertura }}.
+                        @else Al terminar el día, ciérrelo: queda la foto de los totales y ya no se podrán cancelar estos pagos. @endif
+                    </p>
+                @endif
+            </div>
+            @if ($ec?->esta_cerrado)
+                @if ($esAdmin)
+                    <button wire:click="$set('modalReabrir', true)" class="rounded-lg border border-slate-500 px-4 py-2 text-sm hover:bg-slate-800">Reabrir corte</button>
+                @endif
+            @else
+                <button wire:click="cerrarCorte" wire:confirm="¿Cerrar el corte del {{ \Illuminate\Support\Carbon::parse($desde)->format('d/m/Y') }}? Después ya no se podrá cobrar ni cancelar pagos de ese día."
+                        class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Cerrar corte del día</button>
+            @endif
+        </div>
+    @elseif ($esAdmin && ! $cajeroId)
+        <p class="text-xs text-slate-500">Para cerrar o reabrir un corte, elija un solo día y un cajero.</p>
+    @endif
+
     <div class="flex flex-wrap items-end gap-3 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
         <div><label class="mb-1 block text-xs font-medium text-slate-500">Desde</label>
             <input type="date" wire:model.live="desde" class="rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
@@ -64,4 +95,44 @@
             </tbody>
         </table>
     </div>
+
+    @if ($this->cortesRecientes->isNotEmpty())
+        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+            <h2 class="border-b border-slate-200 px-6 py-3 font-semibold">Cortes cerrados recientes</h2>
+            <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <tbody class="divide-y divide-slate-100">
+                    @foreach ($this->cortesRecientes as $c)
+                        <tr wire:key="cr-{{ $c->id }}">
+                            <td class="px-4 py-2 font-medium">{{ $c->fecha->format('d/m/Y') }}</td>
+                            <td class="px-4 py-2">{{ $c->cajero->name }}</td>
+                            <td class="px-4 py-2 text-right tabular-nums">{{ $c->num_pagos }} pagos · ${{ number_format($c->total, 2) }}</td>
+                            <td class="px-4 py-2 text-right text-xs">
+                                @if ($c->esta_cerrado) <span class="rounded bg-slate-900 px-2 py-0.5 font-semibold text-white">CERRADO</span>
+                                @else <span class="rounded bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">REABIERTO</span> @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+
+    @if ($esAdmin)
+        <div x-data="{ open: @entangle('modalReabrir') }" x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-900/60" x-on:click="open = false"></div>
+            <form wire:submit="reabrirCorte" class="relative w-full max-w-md rounded-xl bg-white shadow-2xl">
+                <div class="border-b border-slate-200 px-6 py-4"><h3 class="text-lg font-bold">Reabrir corte</h3>
+                    <p class="text-sm text-slate-500">Permite volver a cobrar y cancelar pagos de ese día. Queda en la bitácora.</p></div>
+                <div class="px-6 py-5">
+                    <label class="mb-1 block text-sm font-semibold">Motivo</label>
+                    <input wire:model="motivoReapertura" maxlength="255" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    @error('motivoReapertura') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                </div>
+                <div class="flex justify-end gap-2 rounded-b-xl border-t border-slate-200 bg-slate-50 px-6 py-4">
+                    <button type="button" x-on:click="open = false" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm">Volver</button>
+                    <button class="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white">Reabrir</button>
+                </div>
+            </form>
+        </div>
+    @endif
 </div>

@@ -9,6 +9,9 @@
 <body>
     <h1>CORTE DE CAJA</h1>
     <div>Periodo: <strong>{{ $corte['desde']->format('d/m/Y') }} al {{ $corte['hasta']->format('d/m/Y') }}</strong> · Cajero: <strong>{{ $cajero }}</strong></div>
+    @if (! empty($cierre))
+        <div style="margin:4pt 0; padding:4pt; border:1px solid #000; font-weight:bold">CORTE CERRADO el {{ $cierre->cerrado_at->format('d/m/Y H:i') }} por {{ $cierre->cerradoPor->name }} · {{ $cierre->num_pagos }} pagos · ${{ number_format($cierre->total, 2) }}</div>
+    @endif
     <div>Generado: {{ now()->format('d/m/Y H:i') }} · Pagos cancelados en el periodo (no suman): {{ $corte['cancelados'] }}</div>
 
     <table style="width: 50%">

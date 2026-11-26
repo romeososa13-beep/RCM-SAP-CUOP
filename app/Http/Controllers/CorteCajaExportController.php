@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\CorteCajaExport;
+use App\Models\CorteCaja;
 use App\Models\User;
 use App\Services\Reportes\CorteCajaService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -31,7 +32,11 @@ class CorteCajaExportController extends Controller
             return Excel::download(new CorteCajaExport($corte, $cajero), "{$archivo}.xlsx");
         }
 
-        return Pdf::loadView('pdf.corte-caja', compact('corte', 'cajero'))
+        $cierre = $cajeroId && $data['desde'] === $data['hasta']
+            ? CorteCaja::with('cerradoPor:id,name')->where('user_id', $cajeroId)->whereDate('fecha', $data['desde'])->whereNull('reabierto_at')->first()
+            : null;
+
+        return Pdf::loadView('pdf.corte-caja', compact('corte', 'cajero', 'cierre'))
             ->setPaper('letter')
             ->stream("{$archivo}.pdf");
     }
