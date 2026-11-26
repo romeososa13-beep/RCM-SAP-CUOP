@@ -33,8 +33,12 @@ class ImportarAlumnosService
         return $this->analizarFilas($import->filas);
     }
 
+    /** Columnas que debe traer el archivo (aunque alguna celda vaya vacía). */
+    public const COLUMNAS_OBLIGATORIAS = ['matricula', 'nombre_completo', 'sede', 'carrera', 'grupo', 'plan_pago', 'estatus'];
+
     public function analizarFilas(Collection $filas): array
     {
+        $this->validarColumnas($filas);
         $sedes = Sede::activas()->pluck('id', 'clave')->mapWithKeys(fn ($id, $k) => [mb_strtoupper($k) => $id]);
         $carreras = Carrera::activas()->pluck('id', 'nombre')->mapWithKeys(fn ($id, $k) => [mb_strtoupper($k) => $id]);
         $planes = PlanPago::with('sede:id,clave')->get(['id', 'nombre', 'sede_id', 'carrera_id'])->keyBy('id');
@@ -68,7 +72,8 @@ class ImportarAlumnosService
                 'email' => filled($f['email'] ?? null) ? mb_strtolower(trim((string) $f['email'])) : null,
                 'costo_ingles' => ! filled($f['ingles'] ?? null) ? null
                     : (is_numeric($f['ingles']) ? number_format((float) $f['ingles'], 2, '.', '') : (string) $f['ingles']),
-                'estatus' => mb_strtoupper(str_replace(' ', '_', (string) ($f['estatus'] ?? ''))) ?: 'ACTIVO',
+                // ESTATUS vacío: un alumno nuevo entra ACTIVO; uno existente conserva el suyo.
+                'estatus' => mb_strtoupper(str_replace(' ', '_', (string) ($f['estatus'] ?? ''))) ?: ($existe ? null : 'ACTIVO'),
             ];
 
             // Sede y carrera con las que quedará el alumno (la sede no cambia en una actualización).
@@ -90,8 +95,8 @@ class ImportarAlumnosService
                     'carrera_id' => [Rule::requiredIf(! $existe || filled($f['carrera'] ?? null))],
                     'grupo' => [$req, 'max:80'],
                     // Obligatorio si viene en el archivo (debe resolverse) o si el alumno quedará ACTIVO sin plan.
-                    'plan_pago_id' => [Rule::requiredIf(filled($plan) || ($datos['estatus'] === 'ACTIVO' && ! $existe?->plan_pago_id))],
-                    'estatus' => [Rule::in(EstatusAlumno::valores())],
+                    'plan_pago_id' => [Rule::requiredIf(filled($plan) || (($datos['estatus'] ?? $existe?->estatus?->value) === 'ACTIVO' && ! $existe?->plan_pago_id))],
+                    'estatus' => ['nullable', Rule::in(EstatusAlumno::valores())],
                     'costo_ingles' => ['nullable', 'numeric', 'min:0', 'max:99999.99'],
                     'email' => ['nullable', 'email', 'max:150'],
                 ],
@@ -152,6 +157,23 @@ class ImportarAlumnosService
         }
 
         return $resultado;
+    }
+
+    /** Rechaza archivos que no son el layout del padrón (p. ej. el de saldos) antes de revisar renglón por renglón. */
+    private function validarColumnas(Collection $filas): void
+    {
+        if ($filas->isEmpty()) {
+            throw new ArchivoPadronInvalido('El archivo no tiene renglones con datos.');
+        }
+        $columnas = collect($filas->first())->keys()->map(fn ($k) => (string) $k);
+        if ($columnas->contains('concepto') && $columnas->contains('vencimiento')) {
+            throw new ArchivoPadronInvalido('Este es el archivo de SALDOS, no el del padrón. Los saldos se cargan con windows\\migrar-saldos.bat (o cobranza:migrar-saldos), no en esta pantalla.');
+        }
+        $faltan = collect(self::COLUMNAS_OBLIGATORIAS)->diff($columnas);
+        if ($faltan->isNotEmpty()) {
+            throw new ArchivoPadronInvalido('Al archivo le faltan las columnas: '.$faltan->map(fn ($c) => mb_strtoupper($c))->implode(', ')
+                .'. Use la plantilla («Descargar plantilla»).');
+        }
     }
 
     /**

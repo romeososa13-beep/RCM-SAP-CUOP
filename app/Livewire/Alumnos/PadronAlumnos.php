@@ -10,6 +10,7 @@ use App\Models\Carrera;
 use App\Models\PlanPago;
 use App\Models\Sede;
 use App\Rules\PlanCompatible;
+use App\Services\Padron\ArchivoPadronInvalido;
 use App\Services\Padron\ImportarAlumnosService;
 use App\Support\BitacoraFormato;
 use Illuminate\Validation\Rule;
@@ -232,6 +233,8 @@ class PadronAlumnos extends Component
 
         try {
             $this->preview = $service->analizar($this->archivo->getRealPath());
+        } catch (ArchivoPadronInvalido $e) {
+            $this->addError('archivo', $e->getMessage());
         } catch (\Throwable $e) {
             report($e);
             $this->addError('archivo', 'No se pudo leer el archivo. Verifique que use la plantilla.');
