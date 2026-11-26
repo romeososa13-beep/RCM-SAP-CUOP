@@ -27,6 +27,9 @@ return [
     |   día 11 → aviso de recargo
     |   día 16 → aviso de bloqueo
     */
+    // La mensualidad se genera del día 1 hasta este día (si el equipo estuvo apagado el día 1).
+    'mensualidad_hasta_dia' => (int) env('COBRANZA_MENSUALIDAD_HASTA_DIA', 10),
+
     'whatsapp_recordatorios' => (bool) env('WHATSAPP_RECORDATORIOS', false),
     'whatsapp_dias' => ['recordatorio_pago' => 8, 'aviso_recargo' => 11, 'aviso_bloqueo' => 16],
 

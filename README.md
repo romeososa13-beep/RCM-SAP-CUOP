@@ -4,6 +4,9 @@ Laravel 13 · Livewire 3 · Alpine.js · Tailwind CSS 3 · MySQL 8 (InnoDB)
 
 > **Producción:** siga [`docs/INSTALACION.md`](docs/INSTALACION.md) (VPS o cPanel, HTTPS, cola,
 > cron, respaldos, correo y WhatsApp).
+>
+> **En tu computadora con Windows (gratis, respaldo en Google Drive):** siga
+> [`docs/INSTALACION_WINDOWS.md`](docs/INSTALACION_WINDOWS.md) — Docker Desktop + doble clic en `windows\iniciar.bat`.
 
 ## Requisitos
 

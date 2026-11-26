@@ -1,0 +1,66 @@
+# ERP CUOP en un equipo con Docker (p. ej. Windows con Docker Desktop).
+# Uso: copiar docker/.env.ejemplo a .env, editarlo y ejecutar windows\iniciar.bat
+name: erp-cuop
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: erp_cuop
+      MYSQL_USER: erp
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Falta DB_ROOT_PASSWORD en .env}
+      TZ: America/Mexico_City
+    command: >-
+      --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=256M --performance-schema=OFF
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: erp-cuop:local
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: erp_cuop
+      DB_USERNAME: erp
+    ports:
+      # Solo en este equipo (127.0.0.1). Desde el celular se entra con Tailscale (ver la guía).
+      - "127.0.0.1:${ERP_PUERTO:-8080}:80"
+    volumes:
+      - app_storage:/var/www/storage
+      - ./importar:/var/www/importar
+
+  respaldo:
+    image: mysql:8.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MYSQL_DATABASE: erp_cuop
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      TZ: America/Mexico_City
+    entrypoint: ["bash", "/respaldo.sh"]
+    volumes:
+      - ./docker/respaldo.sh:/respaldo.sh:ro
+      - ./respaldos:/respaldos
+
+volumes:
+  mysql_data:
+  app_storage:

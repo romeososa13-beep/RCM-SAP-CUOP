@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [AsegurarUsuarioActivo::class]);
         // Meta llama al webhook sin token CSRF; se autentica con la firma X-Hub-Signature-256.
         $middleware->validateCsrfTokens(except: ['webhooks/whatsapp']);
+        // Detrás de un proxy local (nginx del contenedor, «tailscale serve»): respetar X-Forwarded-Proto/Host.
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
