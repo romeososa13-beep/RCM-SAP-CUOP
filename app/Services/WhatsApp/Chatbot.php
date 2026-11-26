@@ -3,19 +3,22 @@
 namespace App\Services\WhatsApp;
 
 use App\Models\Alumno;
+use App\Models\Pago;
 use App\Models\WhatsappMensaje;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * Chatbot por reglas (sin IA): responde dentro de la ventana de 24 h que abre el alumno.
- * Solo da información del alumno cuyo celular / tel. de tutor está registrado con ESE número.
+ * Chatbot: responde dentro de la ventana de 24 h que abre el alumno.
+ * BAJA/ALTA, el menú y los números no registrados van siempre por reglas; las preguntas
+ * libres de un número registrado las contesta la IA (si está encendida) con los datos
+ * de ESE alumno únicamente. Si la IA no está disponible, responde por reglas.
  */
 class Chatbot
 {
     public const MENU = "Escribe el número de la opción:\n1️⃣ Mi saldo\n2️⃣ Fechas de pago y recargos\n3️⃣ Cómo pagar\n4️⃣ Hablar con una persona";
 
-    public function __construct(private readonly Mensajeria $mensajeria) {}
+    public function __construct(private readonly Mensajeria $mensajeria, private readonly AsistenteIa $ia) {}
 
     public function responder(WhatsappMensaje $entrante): ?WhatsappMensaje
     {
@@ -57,8 +60,68 @@ class Chatbot
             in_array($texto, ['4', 'asesor', 'persona', 'humano', 'ayuda'], true) => $this->asesor($entrante),
             (bool) preg_match('/^(hola|buen[oa]s|menu|inicio|hi)\b/', $texto) => $this->decir($entrante,
                 'Hola '.Plantillas::nombre($alumnos->first())." 👋 Soy el asistente de cobranza.\n\n".self::MENU),
-            default => $this->noEntendi($entrante),
+            default => $this->conIa($entrante, $alumnos) ?? $this->noEntendi($entrante),
         };
+    }
+
+    /** Pregunta libre: la contesta la IA con los datos del alumno, o null para usar reglas. */
+    private function conIa(WhatsappMensaje $entrante, Collection $alumnos): ?WhatsappMensaje
+    {
+        $usadasHoy = WhatsappMensaje::where('telefono', $entrante->telefono)->where('tipo', 'bot')
+            ->where('variables->ia', true)->where('created_at', '>=', today())->count();
+        if ($usadasHoy >= config('services.anthropic.max_respuestas_dia')) {
+            return null;
+        }
+
+        $historial = WhatsappMensaje::where('telefono', $entrante->telefono)->where('id', '<', $entrante->id)
+            ->where('created_at', '>=', now()->subHours(24))->latest('id')->limit(8)->get()->reverse()
+            ->map(fn ($m) => ['rol' => $m->direccion === 'entrante' ? 'alumno' : 'escuela', 'texto' => $m->cuerpo])->values()->all();
+
+        $r = $this->ia->responder($entrante->cuerpo, $this->contexto($alumnos), $historial);
+        if (! $r) {
+            return null;
+        }
+        if ($r['requiere_asesor']) {
+            $entrante->update(['requiere_atencion' => true]);
+        }
+
+        $m = $this->decir($entrante, $r['respuesta']);
+        $m?->update(['variables' => ['ia' => true, 'modelo' => config('services.anthropic.modelo'), 'requiere_asesor' => $r['requiere_asesor']]]);
+
+        return $m;
+    }
+
+    /** Hechos verificados que puede usar la IA: solo de los alumnos ligados a este número. */
+    public function contexto(Collection $alumnos): string
+    {
+        $dinero = fn ($v) => '$'.number_format((float) $v, 2);
+        $bloques = $alumnos->map(function (Alumno $a) use ($dinero) {
+            $a->loadMissing(['sede', 'carrera', 'planPago']);
+            $pend = $a->adeudos()->where('pagado', false)->with('pagos:id,adeudo_id,monto_pagado')->orderBy('fecha_vencimiento')->get();
+            $pagos = Pago::whereHas('adeudo', fn ($q) => $q->where('matricula', $a->matricula))
+                ->with('adeudo:id,concepto')->latest('fecha_pago')->limit(5)->get();
+            $bloqueo = Alumno::conBloqueo()->whereKey($a->matricula)->exists();
+
+            return implode("\n", array_filter([
+                "Alumno: {$a->nombre_completo} · matrícula {$a->matricula} · estatus {$a->estatus->etiqueta()}",
+                "Sede: {$a->sede->nombre} · carrera: {$a->carrera->nombre} · grupo {$a->grupo}",
+                $a->planPago ? "Plan: {$a->planPago->nombre}, mensualidad {$dinero($a->planPago->monto_mensualidad)}, recargo {$dinero($a->planPago->monto_recargo)}" : 'Plan: sin plan asignado',
+                (float) $a->costo_ingles > 0 ? "Inglés: {$dinero($a->costo_ingles)} al mes" : null,
+                (float) $a->beca_porcentaje > 0 ? 'Beca: '.rtrim(rtrim(number_format($a->beca_porcentaje, 2), '0'), '.').'%'.($a->beca_ingles ? ' (también en inglés)' : '') : 'Beca: no tiene',
+                'Bloqueo de plataformas: '.($bloqueo ? 'SÍ, hasta liquidar lo vencido de colegiatura o inglés' : 'no'),
+                'Pendiente de pago (total '.$dinero($pend->sum('saldo_pendiente')).'):',
+                $pend->isEmpty() ? '  (nada: está al corriente)' : $pend->map(fn ($d) => "  • {$d->concepto}: saldo {$dinero($d->saldo_pendiente)}"
+                    .((float) $d->recargo_aplicado > 0 ? " (incluye recargo {$dinero($d->recargo_aplicado)})" : '')
+                    .', fecha límite '.$d->fecha_vencimiento->format('d/m/Y').($d->esta_vencido ? ' (VENCIDO)' : ''))->implode("\n"),
+                'Últimos pagos registrados en caja:',
+                $pagos->isEmpty() ? '  (ninguno en este sistema)' : $pagos->map(fn ($p) => "  • {$p->fecha_pago->format('d/m/Y')} folio {$p->folio_pago}: "
+                    ."{$dinero($p->monto_pagado)} a {$p->adeudo->concepto} ({$p->forma_pago->etiqueta()})")->implode("\n"),
+            ]));
+        })->implode("\n\n");
+
+        return 'Fecha de hoy: '.today()->format('d/m/Y')."\n\nDATOS DEL ALUMNO (verificados; el número que escribe está registrado con estas cuentas)\n"
+            .$bloques."\n\nREGLAS DE COBRO\n".$this->fechas()
+            ."\nCómo pagar: ".config('cobranza.datos_pago')."\nHorario de atención: ".config('cobranza.horario_atencion').'.';
     }
 
     private function saldo(Collection $alumnos): string

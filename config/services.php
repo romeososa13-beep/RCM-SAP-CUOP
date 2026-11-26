@@ -50,4 +50,17 @@ return [
         'lada' => env('WHATSAPP_LADA', '52'),
     ],
 
+    /*
+    | Asistente con IA (Claude) para preguntas libres en WhatsApp. Apagado por defecto.
+    | Solo recibe los datos del alumno ligado al número que escribe.
+    */
+    'anthropic' => [
+        'habilitado' => (bool) env('CHATBOT_IA', false),
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'modelo' => env('CHATBOT_IA_MODELO', 'claude-opus-5-5'),
+        'esfuerzo' => env('CHATBOT_IA_ESFUERZO', 'low'),           // chat corto: low basta
+        'max_respuestas_dia' => (int) env('CHATBOT_IA_MAX_DIA', 20), // por número, controla costo
+        'timeout' => (int) env('CHATBOT_IA_TIMEOUT', 40),
+    ],
+
 ];

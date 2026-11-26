@@ -71,7 +71,7 @@
                                 'bg-slate-200 text-slate-700' => $m->tipo === 'bot'])><p class="whitespace-pre-line">{{ $m->cuerpo }}</p>
                                 <p class="mt-1 text-right text-[10px] text-slate-500">
                                     @if ($m->direccion === 'saliente')
-                                        {{ $m->tipo === 'bot' ? 'Asistente' : ($m->tipo === 'plantilla' ? 'Plantilla · ' : '').($m->usuario?->name ?? 'Automático') }} ·
+                                        {{ $m->tipo === 'bot' ? (($m->variables['ia'] ?? false) ? 'Asistente (IA)' : 'Asistente') : ($m->tipo === 'plantilla' ? 'Plantilla · ' : '').($m->usuario?->name ?? 'Automático') }} ·
                                     @endif
                                     {{ $m->created_at->format('d/m H:i') }}
                                     @if ($m->direccion === 'saliente')

@@ -202,6 +202,22 @@ php artisan optimize && php artisan queue:restart
 10. **Recordatorios automáticos:** cuando todo funcione, `WHATSAPP_RECORDATORIOS=true`.
     Ensaye antes: `php artisan whatsapp:recordatorios --fecha=2026-12-08 --simular`.
 
+### Asistente con IA (opcional)
+
+Con la IA apagada, el chatbot responde por reglas (menú 1–4). Al encenderla, las **preguntas libres**
+de un número registrado («¿por qué tengo recargo?», «¿ya se registró mi pago de ayer?») las contesta
+Claude, con los datos de **ese** alumno: adeudos, últimos pagos, beca, bloqueo y reglas de cobro. El menú,
+BAJA/ALTA y los números no registrados siguen por reglas. Si la pregunta es una queja, un trámite o algo
+que no está en los datos, responde que un asesor dará seguimiento y marca la conversación en ámbar.
+
+1. Cree una llave en <https://platform.claude.com> (Settings › API keys) y defina un límite de gasto mensual.
+2. En `.env`: `CHATBOT_IA=true` y `ANTHROPIC_API_KEY=sk-ant-...`; luego `php artisan optimize`.
+3. `CHATBOT_IA_MAX_DIA` limita cuántas respuestas con IA recibe cada número al día (después responde
+   el bot de reglas). Usa `claude-opus-5-5` con esfuerzo bajo.
+
+**Privacidad:** con la IA encendida, los datos de cobranza del alumno que escribe se envían a la API de
+Anthropic para generar la respuesta. Actualice su **aviso de privacidad** para mencionarlo antes de activarla.
+
 **Reglas que aplica el sistema:** solo escribe a alumnos con celular registrado; respeta la
 BAJA (el alumno responde «BAJA» y deja de recibir avisos; «ALTA» lo reactiva); manda cada aviso
 una vez al día como máximo; el chatbot solo da información del alumno cuyo celular o teléfono

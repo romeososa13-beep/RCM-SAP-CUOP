@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use Anthropic\Client;
+use App\Services\WhatsApp\AsistenteApagado;
+use App\Services\WhatsApp\AsistenteIa;
+use App\Services\WhatsApp\ClaudeAsistente;
 use App\Services\WhatsApp\CloudApiClient;
 use App\Services\WhatsApp\LogClient;
 use App\Services\WhatsApp\WhatsAppClient;
@@ -25,6 +29,16 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return new CloudApiClient($c['token'], $c['phone_number_id'], $c['api_version']);
+        });
+
+        $this->app->singleton(AsistenteIa::class, function () {
+            $c = config('services.anthropic');
+
+            if (! ($c['habilitado'] ?? false) || blank($c['api_key'])) {
+                return new AsistenteApagado;
+            }
+
+            return new ClaudeAsistente(new Client(apiKey: $c['api_key']), $c);
         });
     }
 

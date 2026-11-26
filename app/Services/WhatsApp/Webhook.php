@@ -2,6 +2,7 @@
 
 namespace App\Services\WhatsApp;
 
+use App\Jobs\ResponderWhatsApp;
 use App\Models\WhatsappMensaje;
 
 /** Procesa las notificaciones de Meta: estados de entrega y mensajes entrantes. */
@@ -10,8 +11,6 @@ class Webhook
     private const RANGO = ['en_cola' => 0, 'enviado' => 1, 'entregado' => 2, 'leido' => 3, 'fallido' => 4];
 
     private const ESTADOS = ['sent' => 'enviado', 'delivered' => 'entregado', 'read' => 'leido', 'failed' => 'fallido'];
-
-    public function __construct(private readonly Chatbot $bot) {}
 
     public function procesar(array $payload): void
     {
@@ -66,6 +65,6 @@ class Webhook
             'estado' => 'recibido', 'wa_id' => $waId,
         ]);
 
-        $this->bot->responder($entrante);
+        ResponderWhatsApp::dispatch($entrante->id);
     }
 }
