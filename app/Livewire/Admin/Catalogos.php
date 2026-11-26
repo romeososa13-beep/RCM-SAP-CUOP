@@ -127,6 +127,22 @@ class Catalogos extends Component
         $this->dispatch('toast', tipo: 'success', mensaje: 'Catálogo actualizado.');
     }
 
+    /** Activa o desactiva una sede o carrera. No se desactiva si tiene alumnos ACTIVOS. */
+    public function alternarActiva(int $id): void
+    {
+        abort_unless(in_array($this->tab, ['sedes', 'carreras'], true), 404);
+        $m = (self::MODELOS[$this->tab])::findOrFail($id);
+
+        if ($m->activa && ($n = $m->alumnos()->where('estatus', 'ACTIVO')->count()) > 0) {
+            $this->dispatch('toast', tipo: 'error', mensaje: "No se puede desactivar: tiene {$n} alumno(s) activo(s).");
+
+            return;
+        }
+
+        $m->update(['activa' => ! $m->activa]);
+        $this->dispatch('toast', tipo: 'success', mensaje: ($m->activa ? 'Activada: ' : 'Desactivada: ').($m->clave ?? $m->nombre));
+    }
+
     public function eliminar(int $id): void
     {
         $m = (self::MODELOS[$this->tab])::withCount('alumnos')->findOrFail($id);
@@ -154,14 +170,17 @@ class Catalogos extends Component
 
         $query = $clase::withCount('alumnos');
         if ($this->tab === 'planes') {
-            $query->with(['sede:id,clave,nombre', 'carrera:id,nombre'])
+            // Solo planes de sedes activas (o de todas las sedes)
+            $query->where(fn ($q) => $q->whereNull('sede_id')->orWhereHas('sede', fn ($q) => $q->where('activa', true)))
+                ->with(['sede:id,clave,nombre', 'carrera:id,nombre'])
                 ->orderByRaw('sede_id IS NULL')->orderBy('sede_id');
         }
 
         return view('livewire.admin.catalogos', [
-            'registros' => $query->orderBy($this->tab === 'sedes' ? 'clave' : 'nombre')->get(),
-            'sedes' => $this->tab === 'planes' ? Sede::orderBy('clave')->get(['id', 'clave', 'nombre']) : collect(),
-            'carreras' => $this->tab === 'planes' ? Carrera::orderBy('nombre')->get(['id', 'nombre', 'modalidad']) : collect(),
+            'registros' => $query->when($this->tab !== 'planes', fn ($q) => $q->orderByDesc('activa'))
+                ->orderBy($this->tab === 'sedes' ? 'clave' : 'nombre')->get(),
+            'sedes' => $this->tab === 'planes' ? Sede::activas()->orderBy('clave')->get(['id', 'clave', 'nombre']) : collect(),
+            'carreras' => $this->tab === 'planes' ? Carrera::activas()->orderBy('nombre')->get(['id', 'nombre', 'modalidad']) : collect(),
             'modalidades' => ['ESCOLARIZADO', 'NO ESCOLARIZADO', 'MIXTO', 'EN LÍNEA', 'POR CONFIRMAR'],
         ]);
     }

@@ -100,7 +100,7 @@ app/
 database/migrations/         sedes, carreras, planes_pago, alumnos, adeudos, pagos (+ folios_consecutivos)
 resources/views/livewire/    vistas Blade + Tailwind
 resources/views/pdf/         recibo.blade.php, corte-caja.blade.php
-tests/Feature/               82 pruebas (cobranza, administración, planes, reglas, migración, tablero, bitácora, becas, ingresos, correo, WhatsApp)
+tests/Feature/               85 pruebas (cobranza, administración, planes, reglas, migración, tablero, bitácora, becas, ingresos, correo, WhatsApp)
 scripts/prueba-concurrencia.sh   cobros simultáneos contra MySQL (solo base de pruebas)
 ```
 
@@ -162,6 +162,10 @@ formato con Pint, `composer audit` y la suite completa contra **MySQL 8** y **SQ
   día hasta que un Administrador reabra el corte con motivo.
 - **Datos de la institución** (Administración): nombre, RFC, dirección, teléfono, leyenda y logo en
   recibos, corte y correo.
+- **Sedes y carreras activas:** el sistema arranca solo en Loreto; las demás sedes y carreras quedan
+  registradas pero inactivas y se activan en Catálogos cuando se sumen.
+- **Calendario confirmado:** pago del 1 al 10; recargo desde el 11; bloqueo de plataformas desde el 16.
+- **Facturación:** fuera del alcance (los recibos son internos; el CFDI lo emite otro sistema).
 - **Estatus PREINSCRITO:** no genera mensualidad ni bloqueo y no exige plan (no es una baja).
 - Usuarios: no se borran, se desactivan (pierden la sesión al instante). Un administrador
   no puede quitarse su propio rol ni desactivarse.

@@ -61,8 +61,8 @@ class BloqueoPlataformas extends Component
         return view('livewire.reportes.bloqueo-plataformas', [
             'filas' => $filas,
             'total' => round($filas->sum('saldo'), 2),
-            'sedes' => Sede::orderBy('clave')->get(['id', 'clave']),
-            'carreras' => Carrera::orderBy('nombre')->get(['id', 'nombre']),
+            'sedes' => Sede::activas()->orderBy('clave')->get(['id', 'clave']),
+            'carreras' => Carrera::activas()->orderBy('nombre')->get(['id', 'nombre']),
             'dias' => config('cobranza.bloqueo_dias_despues_vencimiento'),
         ]);
     }

@@ -24,6 +24,11 @@ class DatabaseSeeder extends Seeder
         /* ---------------- Catálogos reales (roles y sedes) ---------------- */
         $this->call(CatalogosSeeder::class);
 
+        // Datos de PRUEBA: se activan todas las sedes y carreras para ejercitar el modo multisede.
+        // (En producción se usa solo CatalogosSeeder: Loreto activa y las demás inactivas.)
+        Sede::query()->update(['activa' => true]);
+        Carrera::query()->update(['activa' => true]);
+
         /* ---------------- Usuarios de prueba ---------------- */
 
         $admin = $this->usuario('Administrador General', 'admin@cuop.test', 'Administrador');

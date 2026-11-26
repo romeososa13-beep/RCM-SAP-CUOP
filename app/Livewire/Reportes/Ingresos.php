@@ -59,7 +59,7 @@ class Ingresos extends Component
     {
         return view('livewire.reportes.ingresos', [
             'r' => $this->datos($s),
-            'sedes' => Sede::orderBy('clave')->get(['id', 'clave']),
+            'sedes' => Sede::activas()->orderBy('clave')->get(['id', 'clave']),
             'formas' => FormaPago::cases(),
         ]);
     }

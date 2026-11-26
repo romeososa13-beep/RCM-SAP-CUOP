@@ -77,8 +77,8 @@ class PadronAlumnos extends Component
     public function catalogos(): array
     {
         return [
-            'sedes' => Sede::orderBy('clave')->get(['id', 'clave', 'nombre']),
-            'carreras' => Carrera::orderBy('nombre')->get(['id', 'nombre', 'modalidad']),
+            'sedes' => Sede::activas()->orderBy('clave')->get(['id', 'clave', 'nombre']),
+            'carreras' => Carrera::activas()->orderBy('nombre')->get(['id', 'nombre', 'modalidad']),
         ];
     }
 

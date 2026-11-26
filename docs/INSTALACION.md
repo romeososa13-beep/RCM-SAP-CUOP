@@ -71,7 +71,7 @@ MAIL_FROM_NAME="CUOP Caja"
 
 ```bash
 php artisan migrate --force
-php artisan db:seed --class=CatalogosSeeder --force   # roles, sedes, carreras, planes (NO usar --seed)
+php artisan db:seed --class=CatalogosSeeder --force   # roles, sedes, carreras y planes; solo Loreto activa (NO usar --seed)
 php artisan optimize
 ```
 
@@ -135,7 +135,7 @@ cd /var/www/erp-cuop && scripts/desplegar.sh
 
 Pone el sitio en mantenimiento, baja lo último de `main`, migra, recompila y reinicia la cola.
 
-## 8. Carga inicial de datos
+## 8. Carga inicial de datos (Loreto)
 
 ```bash
 # 1) Padrón (o desde Padrón › Importar Excel en la pantalla)
@@ -144,11 +144,28 @@ php artisan cobranza:migrar-saldos saldos_para_migrar.xlsx --simular
 php artisan cobranza:migrar-saldos saldos_para_migrar.xlsx
 ```
 
+Use los archivos de Loreto (`padron_lor_para_importar.xlsx` y `saldos_lor_para_migrar.xlsx`).
+Antes de importar, asigne plan a los 10 alumnos activos marcados en rojo en la hoja «Revisión».
+
 Ajuste el folio inicial para que continúe la numeración del sistema anterior:
 
 ```bash
 php artisan tinker --execute='App\Models\FolioConsecutivo::updateOrCreate(["serie"=>"PAGOS"],["ultimo_folio"=>ULTIMO_FOLIO_DE_INTELL,"longitud"=>5]);'
 ```
+
+### Sumar otra sede más adelante
+
+El sistema arranca **solo en Loreto**: las otras 4 sedes, sus 55 planes y las 10 carreras que no se
+imparten en Loreto ya están registradas pero **inactivas** (no aparecen en selectores, filtros,
+reportes ni importación). Para sumar una sede:
+
+1. **Administración › Catálogos › Sedes:** «Activar» la sede (y en *Carreras* las que imparta, con su modalidad).
+2. **Catálogos › Planes de pago:** revisar sus planes y montos.
+3. Importar su padrón y migrar sus saldos igual que en Loreto (cada archivo solo con alumnos de esa sede).
+
+No se puede desactivar una sede o carrera que tenga alumnos activos.
+
+> **Facturación:** este sistema emite recibos internos de pago; las facturas (CFDI) las emite otro sistema.
 
 ---
 

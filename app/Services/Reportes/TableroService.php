@@ -57,7 +57,7 @@ class TableroService
                 return $f;
             });
 
-        $sedes = Sede::orderBy('clave')->when($sedeId, fn ($q) => $q->whereKey($sedeId))->get(['id', 'clave', 'nombre']);
+        $sedes = Sede::activas()->orderBy('clave')->when($sedeId, fn ($q) => $q->whereKey($sedeId))->get(['id', 'clave', 'nombre']);
         $activos = Alumno::query()->where('estatus', EstatusAlumno::ACTIVO)
             ->when($sedeId, fn ($q) => $q->where('sede_id', $sedeId))
             ->selectRaw('sede_id, COUNT(*) n')->groupBy('sede_id')->pluck('n', 'sede_id');

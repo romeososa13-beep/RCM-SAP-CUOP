@@ -63,8 +63,8 @@ class CarteraVencida extends Component
         return view('livewire.reportes.cartera-vencida', [
             'filas' => $filas,
             'resumen' => $resumen,
-            'sedes' => Sede::orderBy('clave')->get(),
-            'carreras' => Carrera::orderBy('nombre')->get(),
+            'sedes' => Sede::activas()->orderBy('clave')->get(),
+            'carreras' => Carrera::activas()->orderBy('nombre')->get(),
         ]);
     }
 }

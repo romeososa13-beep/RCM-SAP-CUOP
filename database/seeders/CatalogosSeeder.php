@@ -28,6 +28,15 @@ class CatalogosSeeder extends Seeder
 
     public const ROLES = ['Administrador', 'Cajero', 'Control Escolar'];
 
+    /** El sistema arranca solo en Loreto; las demás sedes se activan después en Catálogos. */
+    public const SEDES_ACTIVAS = ['CUOP-LOR'];
+
+    /** Carreras que hoy se imparten en Loreto (las demás quedan inactivas hasta sumar su sede). */
+    public const CARRERAS_ACTIVAS = [
+        'LICENCIATURA EN EDUCACIÓN', 'LICENCIATURA EN DERECHO', 'LICENCIATURA EN ADMINISTRACIÓN',
+        'MAESTRÍA EN EDUCACIÓN E INNOVACIÓN', 'MAESTRÍA EN MEDIACIÓN Y JUICIOS ORALES',
+    ];
+
     /**
      * nombre => modalidad. Fuente: tablero ejecutivo de las 5 sedes, sep–dic 2026.
      * Las 5 primeras son NO ESCOLARIZADO según los códigos de grupo de Loreto (*-NESC-SAB);
@@ -54,8 +63,8 @@ class CatalogosSeeder extends Seeder
     /**
      * Planes por sede: clave de sede => [nombre => mensualidad]. Mismos nombres que en INTELL
      * para que la importación del padrón los encuentre.
-     * Fuente: «Plan en INTELL» de cada alumno. Recargo $180: el observado en las 5 sedes.
-     * PENDIENTE DE CONFIRMAR: días de tolerancia.
+     * Fuente: «Plan en INTELL» de cada alumno. Confirmado por Administración: se paga del 1 al 10,
+     * desde el 11 recargo de $180 (inglés: 10%) y desde el 16 bloqueo de plataformas.
      */
     public const PLANES = [
         'CUOP-LOR' => [
@@ -95,11 +104,14 @@ class CatalogosSeeder extends Seeder
         }
 
         foreach (self::SEDES as $clave => $nombre) {
-            Sede::updateOrCreate(['clave' => $clave], ['nombre' => $nombre]);
+            // «activa» solo se fija al crear: no deshace lo que el Administrador active después.
+            $sede = Sede::firstOrCreate(['clave' => $clave], ['nombre' => $nombre, 'activa' => in_array($clave, self::SEDES_ACTIVAS, true)]);
+            $sede->update(['nombre' => $nombre]);
         }
 
         foreach (self::CARRERAS as $nombre => $modalidad) {
-            Carrera::firstOrCreate(['nombre' => $nombre, 'modalidad' => $modalidad]);
+            Carrera::firstOrCreate(['nombre' => $nombre, 'modalidad' => $modalidad],
+                ['activa' => in_array($nombre, self::CARRERAS_ACTIVAS, true)]);
         }
 
         // firstOrCreate: si un plan ya existe, NO se sobreescriben los montos que el

@@ -16,6 +16,8 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use Auditable, HasFactory, HasRoles, Notifiable;
 
+    protected $attributes = ['activo' => true];
+
     protected array $auditIgnorar = ['email_verified_at'];
 
     protected array $auditOcultar = ['password'];

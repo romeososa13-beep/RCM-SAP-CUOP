@@ -35,8 +35,8 @@ class ImportarAlumnosService
 
     public function analizarFilas(Collection $filas): array
     {
-        $sedes = Sede::pluck('id', 'clave')->mapWithKeys(fn ($id, $k) => [mb_strtoupper($k) => $id]);
-        $carreras = Carrera::pluck('id', 'nombre')->mapWithKeys(fn ($id, $k) => [mb_strtoupper($k) => $id]);
+        $sedes = Sede::activas()->pluck('id', 'clave')->mapWithKeys(fn ($id, $k) => [mb_strtoupper($k) => $id]);
+        $carreras = Carrera::activas()->pluck('id', 'nombre')->mapWithKeys(fn ($id, $k) => [mb_strtoupper($k) => $id]);
         $planes = PlanPago::with('sede:id,clave')->get(['id', 'nombre', 'sede_id', 'carrera_id'])->keyBy('id');
 
         $matriculas = $filas->map(fn ($f) => mb_strtoupper((string) ($f['matricula'] ?? '')))->filter()->unique();
@@ -97,8 +97,8 @@ class ImportarAlumnosService
                 ],
                 [
                     'matricula.regex' => 'Matrícula con caracteres inválidos.',
-                    'sede_id.required' => 'Sede no existe en el catálogo (use la clave, ej. CUOP-LOR).',
-                    'carrera_id.required' => 'Carrera no existe en el catálogo.',
+                    'sede_id.required' => 'Sede no existe o no está activa (use la clave, ej. CUOP-LOR; las sedes se activan en Catálogos).',
+                    'carrera_id.required' => 'Carrera no existe o no está activa en el catálogo.',
                     'plan_pago_id.required' => $plan === '' ? 'Falta el plan de pago: es obligatorio para alumnos ACTIVOS.' : 'Plan de pago no existe en el catálogo.',
                     'estatus.in' => 'Estatus inválido (ACTIVO, BAJA_TEMPORAL, BAJA_DEFINITIVA, EGRESADO).',
                     'costo_ingles.numeric' => 'INGLES debe ser un monto (ej. 350).',

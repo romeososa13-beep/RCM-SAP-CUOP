@@ -47,7 +47,7 @@ class Tablero extends Component
 
         return view('livewire.reportes.tablero', [
             't' => $service->generar($desde, $hasta, $this->sedeId ? (int) $this->sedeId : null),
-            'sedes' => Sede::orderBy('clave')->get(['id', 'clave']),
+            'sedes' => Sede::activas()->orderBy('clave')->get(['id', 'clave']),
             'periodos' => $this->periodos(),
         ]);
     }
