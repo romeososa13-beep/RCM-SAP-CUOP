@@ -11,7 +11,7 @@ class WhatsappMensaje extends Model
     protected $table = 'whatsapp_mensajes';
 
     protected $fillable = ['telefono', 'matricula', 'direccion', 'tipo', 'plantilla', 'cuerpo', 'variables',
-        'estado', 'wa_id', 'error', 'requiere_atencion', 'user_id'];
+        'estado', 'wa_id', 'error', 'requiere_atencion', 'user_id', 'campana_id'];
 
     protected function casts(): array
     {
@@ -21,6 +21,11 @@ class WhatsappMensaje extends Model
     public function alumno(): BelongsTo
     {
         return $this->belongsTo(Alumno::class, 'matricula', 'matricula');
+    }
+
+    public function campana(): BelongsTo
+    {
+        return $this->belongsTo(CampanaCobranza::class, 'campana_id');
     }
 
     public function usuario(): BelongsTo

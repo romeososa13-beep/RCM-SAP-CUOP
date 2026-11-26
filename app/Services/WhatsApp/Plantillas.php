@@ -43,7 +43,9 @@ class Plantillas
      */
     public static function variables(string $clave, Alumno $a, ?Pago $pago = null): ?array
     {
+        // Solo lo exigible hasta este mes: no se cobra por WhatsApp un cargo futuro ya generado.
         $pendientes = $a->adeudos()->where('pagado', false)->whereIn('tipo', ['COLEGIATURA', 'INGLES'])
+            ->whereDate('fecha_vencimiento', '<=', today()->endOfMonth()->toDateString())
             ->with('pagos:id,adeudo_id,monto_pagado')->orderBy('fecha_vencimiento')->get();
         $dinero = fn ($v) => number_format($v, 2);
 

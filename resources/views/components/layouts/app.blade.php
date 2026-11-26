@@ -30,6 +30,8 @@
                        @class(['flex items-center gap-1 rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('whatsapp')])>
                         WhatsApp @if ($waPendientes) <span class="rounded-full bg-amber-500 px-1.5 text-xs font-bold">{{ $waPendientes }}</span> @endif
                     </a>
+                    <a href="{{ route('cobranza.campanas') }}" wire:navigate
+                       @class(['rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('cobranza.*')])>Cobranza</a>
                 @endhasanyrole
                 <a href="{{ route('reportes.bloqueo') }}" wire:navigate
                    @class(['rounded px-2.5 py-1.5 hover:bg-slate-700', 'bg-slate-700' => request()->routeIs('reportes.bloqueo')])>Bloqueos</a>

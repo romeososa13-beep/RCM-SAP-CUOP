@@ -219,6 +219,14 @@ php artisan optimize && php artisan queue:restart
 10. **Recordatorios automáticos:** cuando todo funcione, `WHATSAPP_RECORDATORIOS=true`.
     Ensaye antes: `php artisan whatsapp:recordatorios --fecha=2026-12-08 --simular`.
 
+### Campañas de cobranza
+
+Menú **Cobranza**: elige el segmento (por vencer, con recargo, con bloqueo o días de atraso) y los filtros,
+revisa la vista previa del mensaje y pulsa **Enviar**. Cada campaña guarda a quién se envió y muestra en su
+detalle los estados de entrega (requieren el webhook) y lo cobrado a esos alumnos desde el envío.
+Un alumno no recibe el mismo aviso dos veces el mismo día, aunque se lancen varias campañas.
+Con `WHATSAPP_DRIVER=log` se pueden probar sin que los mensajes salgan.
+
 ### Asistente con IA (opcional)
 
 Con la IA apagada, el chatbot responde por reglas (menú 1–4). Al encenderla, las **preguntas libres**

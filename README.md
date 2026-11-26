@@ -161,6 +161,11 @@ formato con Pint, `composer audit` y la suite completa contra **MySQL 8** y **SQ
   confirmación de pago), aviso masivo desde Bloqueos, bandeja de conversaciones y chatbot por
   reglas (saldo, fechas, cómo pagar, pase a una persona). Respeta BAJA/ALTA. Opcional: asistente con
   IA (Claude) para preguntas libres, solo con los datos del alumno de ese número. Ver docs/INSTALACION.md §9.
+- **Campañas de cobranza** (menú Cobranza): segmentos *por vencer este mes*, *con recargo (sin bloqueo)*,
+  *con bloqueo* y *por días de atraso*, con filtros de sede, carrera, grupo y saldo mínimo. Muestra cuántos
+  alumnos y cuánto deben (solo lo que vence a más tardar este mes), cómo le llega el mensaje, y lo envía
+  por WhatsApp a quien tiene celular y no pidió BAJA. Después mide entregados/leídos/fallidos, cuántos
+  pagaron después del mensaje y cuánto se cobró.
 - **Cierre del corte de caja:** el cajero cierra su día; después no cobra ni se cancelan pagos de ese
   día hasta que un Administrador reabra el corte con motivo.
 - **Datos de la institución** (Administración): nombre, RFC, dirección, teléfono, leyenda y logo en

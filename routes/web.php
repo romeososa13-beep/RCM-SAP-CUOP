@@ -11,6 +11,7 @@ use App\Livewire\Alumnos\PadronAlumnos;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\MiCuenta;
 use App\Livewire\Caja\EstadoCuenta;
+use App\Livewire\Cobranza\Campanas;
 use App\Livewire\Reportes\BloqueoPlataformas;
 use App\Livewire\Reportes\CarteraVencida;
 use App\Livewire\Reportes\CorteCaja;
@@ -53,6 +54,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/caja/estado-cuenta/{matricula?}', EstadoCuenta::class)->name('caja.estado-cuenta');
         Route::get('/caja/recibos/{pago}', ReciboPagoController::class)->withTrashed()->name('caja.recibo');
         Route::get('/whatsapp', Bandeja::class)->name('whatsapp');
+        Route::get('/cobranza/campanas', Campanas::class)->name('cobranza.campanas');
     });
 
     // Módulo B: Control Escolar

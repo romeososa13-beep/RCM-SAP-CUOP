@@ -15,7 +15,7 @@ class BitacoraFormato
 {
     public const ENTIDADES = [
         'alumno' => 'Alumno', 'adeudo' => 'Cargo', 'pago' => 'Pago', 'plan_pago' => 'Plan de pago',
-        'sede' => 'Sede', 'carrera' => 'Carrera', 'usuario' => 'Usuario', 'proceso' => 'Proceso automático', 'corte_caja' => 'Corte de caja', 'ajustes' => 'Ajustes',
+        'sede' => 'Sede', 'carrera' => 'Carrera', 'usuario' => 'Usuario', 'proceso' => 'Proceso automático', 'corte_caja' => 'Corte de caja', 'ajustes' => 'Ajustes', 'campana_cobranza' => 'Campaña de cobranza',
     ];
 
     public const ACCIONES = [

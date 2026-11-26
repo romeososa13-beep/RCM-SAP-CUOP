@@ -15,7 +15,7 @@ class Mensajeria
      *
      * @return array{0: ?WhatsappMensaje, 1: ?string}
      */
-    public function plantilla(Alumno $alumno, string $clave, ?User $usuario = null, ?Pago $pago = null, bool $unaVezAlDia = true): array
+    public function plantilla(Alumno $alumno, string $clave, ?User $usuario = null, ?Pago $pago = null, bool $unaVezAlDia = true, ?int $campanaId = null): array
     {
         if (! isset(Plantillas::TEXTOS[$clave])) {
             return [null, 'Plantilla desconocida.'];
@@ -39,7 +39,7 @@ class Mensajeria
         $m = WhatsappMensaje::create([
             'telefono' => $telefono, 'matricula' => $alumno->matricula, 'direccion' => 'saliente', 'tipo' => 'plantilla',
             'plantilla' => $clave, 'variables' => $variables, 'cuerpo' => Plantillas::vistaPrevia($clave, $variables),
-            'estado' => 'en_cola', 'user_id' => $usuario?->id,
+            'estado' => 'en_cola', 'user_id' => $usuario?->id, 'campana_id' => $campanaId,
         ]);
         EnviarWhatsApp::dispatch($m->id);
 
