@@ -19,5 +19,5 @@ Matrícula: {{ $alumno->matricula }}
 
 Si tienes alguna duda sobre este pago, acude a caja con tu folio.
 
-{{ config('app.name') }}
+{{ \App\Models\Ajuste::institucion()['institucion_nombre'] }}
 </x-mail::message>

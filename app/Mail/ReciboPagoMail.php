@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\Ajuste;
 use App\Models\Pago;
 use App\Services\Cobranza\ReciboPdf;
 use Illuminate\Bus\Queueable;
@@ -23,7 +24,7 @@ class ReciboPagoMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: "Recibo de pago folio {$this->pago->folio_pago} · ".config('app.name'));
+        return new Envelope(subject: "Recibo de pago folio {$this->pago->folio_pago} · ".Ajuste::institucion()['institucion_nombre']);
     }
 
     public function content(): Content

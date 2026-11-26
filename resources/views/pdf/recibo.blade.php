@@ -19,8 +19,15 @@
 </head>
 <body>
     <div class="c">
-        <h1>CENTRO UNIVERSITARIO</h1>
-        <div>{{ $alumno->sede->nombre }} ({{ $alumno->sede->clave }})</div>
+        @php($inst = \App\Models\Ajuste::institucion())
+        @php($logo = \App\Models\Ajuste::logoDataUri())
+        @if ($logo) <img src="{{ $logo }}" alt="" style="max-height: {{ $formato === 'media-carta' ? '42pt' : '34pt' }}; max-width: 90%; margin-bottom: 3pt"> @endif
+        <h1>{{ $inst['institucion_nombre'] }}</h1>
+        @if ($inst['institucion_razon_social']) <div>{{ $inst['institucion_razon_social'] }}</div> @endif
+        @if ($inst['institucion_rfc']) <div>RFC: {{ $inst['institucion_rfc'] }}</div> @endif
+        @if ($inst['institucion_direccion']) <div class="muted">{{ $inst['institucion_direccion'] }}</div> @endif
+        @if ($inst['institucion_telefono']) <div class="muted">Tel. {{ $inst['institucion_telefono'] }}</div> @endif
+        <div>Sede: {{ $alumno->sede->nombre }} ({{ $alumno->sede->clave }})</div>
         <div class="b" style="margin-top:3pt">RECIBO DE PAGO</div>
         <div>Folio: <span class="b">{{ $pago->folio_pago }}</span></div>
     </div>
@@ -41,6 +48,10 @@
     <div class="sep"></div>
     <table>
         <tr><td colspan="2" class="b">{{ $adeudo->concepto }} <span class="muted">(Adeudo #{{ $adeudo->id }})</span></td></tr>
+        @if ((float) $adeudo->descuento > 0)
+            <tr><td>Monto sin beca</td><td class="r">${{ number_format($adeudo->monto_original + $adeudo->descuento, 2) }}</td></tr>
+            <tr><td>Beca</td><td class="r">- ${{ number_format($adeudo->descuento, 2) }}</td></tr>
+        @endif
         <tr><td>Cargo original</td><td class="r">${{ number_format($adeudo->monto_original, 2) }}</td></tr>
         @if ((float) $adeudo->recargo_aplicado > 0)
             <tr><td>Recargo</td><td class="r">${{ number_format($adeudo->recargo_aplicado, 2) }}</td></tr>
@@ -66,7 +77,7 @@
     <div class="c muted">
         Atendió: {{ $pago->cajero->name }}<br>
         Impreso: {{ now()->format('d/m/Y H:i') }}<br>
-        Este recibo es un comprobante interno de pago.<br>Consérvelo para cualquier aclaración.
+        {{ $inst['recibo_leyenda'] }}
     </div>
 </body>
 </html>

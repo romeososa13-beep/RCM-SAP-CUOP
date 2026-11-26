@@ -45,6 +45,7 @@ jobs:
 
       - name: Dependencias
         run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
           composer install --no-interaction --prefer-dist --no-progress
           npm ci
           npm run build

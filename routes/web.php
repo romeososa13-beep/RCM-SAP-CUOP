@@ -5,6 +5,7 @@ use App\Http\Controllers\ReciboPagoController;
 use App\Http\Controllers\Webhooks\WhatsAppWebhookController;
 use App\Livewire\Admin\BitacoraCambios;
 use App\Livewire\Admin\Catalogos;
+use App\Livewire\Admin\Institucion;
 use App\Livewire\Admin\Usuarios;
 use App\Livewire\Alumnos\PadronAlumnos;
 use App\Livewire\Auth\Login;
@@ -16,6 +17,8 @@ use App\Livewire\Reportes\CorteCaja;
 use App\Livewire\Reportes\Ingresos;
 use App\Livewire\Reportes\Tablero;
 use App\Livewire\WhatsApp\Bandeja;
+use App\Models\Pago;
+use App\Services\Cobranza\ReciboPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +75,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/usuarios', Usuarios::class)->name('admin.usuarios');
         Route::get('/admin/catalogos', Catalogos::class)->name('admin.catalogos');
         Route::get('/admin/bitacora', BitacoraCambios::class)->name('admin.bitacora');
+        Route::get('/admin/institucion', Institucion::class)->name('admin.institucion');
+        // Recibo de muestra con los datos de la institución (usa el último pago registrado)
+        Route::get('/admin/institucion/muestra', function (ReciboPdf $recibo) {
+            $pago = Pago::latest('id')->first();
+            abort_unless($pago, 404, 'Todavía no hay pagos registrados para generar una muestra.');
+
+            return $recibo->generar($pago, request('formato') === 'media-carta' ? 'media-carta' : 'ticket')->stream('recibo-muestra.pdf');
+        })->name('admin.institucion.muestra');
     });
 
     // Bloqueo de plataformas: lo consultan caja, control escolar y administración.
